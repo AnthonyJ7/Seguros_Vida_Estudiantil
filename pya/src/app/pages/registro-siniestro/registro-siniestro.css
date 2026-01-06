@@ -1,0 +1,14 @@
+h2 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e293b;
+}
+form {
+  margin-top: 2rem;
+}
+input, textarea {
+  margin-bottom: 1rem;
+}
+button {
+  cursor: pointer;
+}

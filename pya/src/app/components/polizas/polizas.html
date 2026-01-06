@@ -1,0 +1,17 @@
+<h2>Gestión de Pólizas</h2>
+
+<h3>Lista de Pólizas</h3>
+<ul>
+  <li *ngFor="let poliza of polizas">
+    Póliza #{{ poliza.numero }} - Estudiante: {{ poliza.estudianteId }} - Monto: {{ poliza.monto }}
+    <button (click)="deletePoliza(poliza.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Póliza</h3>
+<form (ngSubmit)="addPoliza()">
+  <input type="text" [(ngModel)]="newPoliza.numero" name="numero" placeholder="Número de Póliza" required>
+  <input type="text" [(ngModel)]="newPoliza.estudianteId" name="estudianteId" placeholder="ID Estudiante" required>
+  <input type="number" [(ngModel)]="newPoliza.monto" name="monto" placeholder="Monto" required>
+  <button type="submit">Agregar</button>
+</form>

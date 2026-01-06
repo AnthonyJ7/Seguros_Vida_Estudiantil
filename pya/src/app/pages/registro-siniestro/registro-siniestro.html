@@ -1,0 +1,35 @@
+<div class="max-w-2xl mx-auto mt-12 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
+  <h2 class="text-3xl font-black text-slate-800 mb-8">Registrar Siniestro</h2>
+  <form (ngSubmit)="registrarSiniestro()" #form="ngForm" novalidate>
+    <!-- Eliminado campo Número de Siniestro -->
+    <!-- Campo de ID de póliza eliminado: ahora se genera automáticamente en backend -->
+    <div class="mb-6">
+      <label class="block text-sm font-bold text-slate-600 mb-2">Tipo de Siniestro</label>
+      <select [(ngModel)]="newSiniestro.tipo" name="tipo" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" required [class.border-red-500]="form.submitted && !newSiniestro.tipo">
+        <option value="" disabled selected>Selecciona el tipo</option>
+        <option value="accidente">Accidente</option>
+        <option value="enfermedad">Enfermedad</option>
+        <option value="fallecimiento">Fallecimiento</option>
+        <option value="otro">Otro</option>
+      </select>
+      <div *ngIf="form.submitted && !newSiniestro.tipo" class="text-red-500 text-xs mt-1">Selecciona un tipo de siniestro.</div>
+    </div>
+    <div class="mb-6">
+      <label class="block text-sm font-bold text-slate-600 mb-2">Descripción del Siniestro</label>
+      <textarea [(ngModel)]="newSiniestro.descripcion" name="descripcion" rows="4" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" placeholder="Describe detalladamente el incidente..." required [class.border-red-500]="form.submitted && !newSiniestro.descripcion"></textarea>
+      <div *ngIf="form.submitted && !newSiniestro.descripcion" class="text-red-500 text-xs mt-1">Este campo es obligatorio.</div>
+    </div>
+    <div class="mb-6">
+      <label class="block text-sm font-bold text-slate-600 mb-2">Adjuntar Documento (opcional)</label>
+      <input type="file" (change)="onFileSelected($event)" name="documento" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+    </div>
+    <div class="flex justify-end gap-4">
+      <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2" [disabled]="loading">
+        <span *ngIf="loading" class="animate-spin inline-block w-5 h-5 border-2 border-white border-t-indigo-600 rounded-full"></span>
+        Registrar Siniestro
+      </button>
+    </div>
+    <div *ngIf="successMessage" class="mt-4 text-green-600 font-bold">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="mt-4 text-red-600 font-bold">{{ errorMessage }}</div>
+  </form>
+</div>

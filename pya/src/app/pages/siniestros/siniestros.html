@@ -1,0 +1,32 @@
+<div class="max-w-3xl mx-auto mt-12 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
+  <!-- Botón para volver atrás -->
+  <div class="mb-6">
+    <button (click)="goBack()" class="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 rounded-xl font-bold hover:bg-slate-300 transition-all">
+      <span class="material-icons">arrow_back</span> Volver
+    </button>
+  </div>
+  <h2 class="text-3xl font-black text-slate-800 mb-8">Siniestros Registrados</h2>
+  <div *ngIf="loading" class="text-slate-500">Cargando siniestros...</div>
+  <div *ngIf="error" class="text-red-600 font-bold">{{ error }}</div>
+  <div *ngIf="!loading && siniestros.length === 0" class="text-slate-500">No hay siniestros registrados.</div>
+  <table *ngIf="!loading && siniestros.length > 0" class="min-w-full mt-4">
+    <thead>
+      <tr>
+        <th class="text-left py-2 px-4">ID</th>
+        <th class="text-left py-2 px-4">Tipo</th>
+        <th class="text-left py-2 px-4">Descripción</th>
+        <th class="text-left py-2 px-4">Fecha</th>
+        <th class="text-left py-2 px-4">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of siniestros">
+        <td class="py-2 px-4">{{ s.idAuto || s.id }}</td>
+        <td class="py-2 px-4">{{ s.tipo }}</td>
+        <td class="py-2 px-4">{{ s.descripcion }}</td>
+        <td class="py-2 px-4">{{ s.fechaRegistro | date:'short' }}</td>
+        <td class="py-2 px-4">{{ s.estadoCaso }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,19 @@
+<h2>Gestión de Documentos</h2>
+
+<h3>Lista de Documentos</h3>
+<ul>
+  <li *ngFor="let documento of documentos">
+    {{ documento.nombre }} - Tipo: {{ documento.tipo }} - Fecha: {{ documento.fechaSubida | date:'short' }} - Usuario: {{ documento.usuarioId }}
+    <a [href]="documento.url" target="_blank">Ver Documento</a>
+    <button (click)="deleteDocumento(documento.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Documento</h3>
+<form (ngSubmit)="addDocumento()">
+  <input type="text" [(ngModel)]="newDocumento.nombre" name="nombre" placeholder="Nombre del Documento" required>
+  <input type="text" [(ngModel)]="newDocumento.tipo" name="tipo" placeholder="Tipo" required>
+  <input type="url" [(ngModel)]="newDocumento.url" name="url" placeholder="URL del Documento" required>
+  <input type="text" [(ngModel)]="newDocumento.usuarioId" name="usuarioId" placeholder="ID Usuario" required>
+  <button type="submit">Agregar</button>
+</form>

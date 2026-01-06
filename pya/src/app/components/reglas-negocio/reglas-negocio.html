@@ -1,0 +1,21 @@
+<h2>Gestión de Reglas de Negocio</h2>
+
+<h3>Lista de Reglas</h3>
+<ul>
+  <li *ngFor="let regla of reglas">
+    <strong>{{ regla.nombre }}</strong> - {{ regla.descripcion }} - Valor: {{ regla.valor }} - Tipo: {{ regla.tipo }} - Activa: {{ regla.activa ? 'Sí' : 'No' }}
+    <button (click)="deleteRegla(regla.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Regla</h3>
+<form (ngSubmit)="addRegla()">
+  <input type="text" [(ngModel)]="newRegla.nombre" name="nombre" placeholder="Nombre" required>
+  <textarea [(ngModel)]="newRegla.descripcion" name="descripcion" placeholder="Descripción" required></textarea>
+  <input type="text" [(ngModel)]="newRegla.valor" name="valor" placeholder="Valor" required>
+  <input type="text" [(ngModel)]="newRegla.tipo" name="tipo" placeholder="Tipo" required>
+  <label>
+    <input type="checkbox" [(ngModel)]="newRegla.activa" name="activa"> Activa
+  </label>
+  <button type="submit">Agregar</button>
+</form>

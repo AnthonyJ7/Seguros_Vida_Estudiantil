@@ -1,0 +1,21 @@
+<h2>Gestión de Trámites</h2>
+
+<h3>Lista de Trámites</h3>
+<ul>
+  <li *ngFor="let tramite of tramites">
+    <strong>{{ tramite.nombre }}</strong> - {{ tramite.descripcion }} - Estado: {{ tramite.estadoCaso }} - Fecha: {{ tramite.fechaInicio | date:'short' }} - Usuario: {{ tramite.usuarioId }}
+    <button (click)="deleteTramite(tramite.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Trámite</h3>
+<form (ngSubmit)="addTramite()">
+  <input type="text" [(ngModel)]="newTramite.nombre" name="nombre" placeholder="Nombre del Trámite" required>
+  <textarea [(ngModel)]="newTramite.descripcion" name="descripcion" placeholder="Descripción" required></textarea>
+  <select [(ngModel)]="newTramite.estadoCaso" name="estadoCaso" required>
+    <option *ngFor="let estado of estadosCaso" [value]="estado">{{ estado }}</option>
+  </select>
+  <input type="date" [(ngModel)]="newTramite.fechaInicio" name="fechaInicio" required>
+  <input type="text" [(ngModel)]="newTramite.usuarioId" name="usuarioId" placeholder="ID Usuario" required>
+  <button type="submit">Agregar</button>
+</form>

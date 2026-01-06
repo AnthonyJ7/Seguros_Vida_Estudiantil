@@ -23,17 +23,10 @@
         </div>
         <h3 class="text-xl font-bold text-slate-800">Registrar Nuevo Seguro</h3>
       </div>
-      
       <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nombre del Cliente</label>
-          <input type="text" placeholder="Ej. Juan Manuel" 
-                 class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
-        </div>
-        
-        <button class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-indigo-600 shadow-lg shadow-indigo-100 active:scale-95 transition-all">
-          CREAR REGISTRO
-        </button>
+        <a routerLink="/registro-siniestro" class="w-full block bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-indigo-600 shadow-lg shadow-indigo-100 active:scale-95 transition-all text-center">
+          Ir al formulario de registro
+        </a>
       </div>
     </div>
 
@@ -51,21 +44,45 @@
       </div>
 
       <div class="space-y-4">
-        <div class="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-md transition-all group">
+        <h4 class="text-lg font-bold text-slate-700">Pólizas</h4>
+        <div *ngIf="loadingPolizas" class="text-center text-slate-400">Cargando pólizas...</div>
+        <div *ngIf="!loadingPolizas && polizas.length === 0" class="text-center text-slate-400">No hay pólizas registradas.</div>
+        <div *ngFor="let poliza of polizas" class="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-md transition-all group">
           <div class="flex items-center gap-4">
             <div class="h-12 w-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-2xl group-hover:bg-indigo-50 transition-colors">📄</div>
             <div>
-              <p class="text-slate-800 font-bold">Juan Perez - DNI.pdf</p>
-              <p class="text-slate-400 text-xs font-medium italic">Referencia: #POL-8829</p>
+              <p class="text-slate-800 font-bold">Póliza #{{ poliza.numero }} - Estudiante: {{ poliza.estudianteId }}</p>
+              <p class="text-slate-400 text-xs font-medium italic">Monto: ${{ poliza.monto }}</p>
             </div>
           </div>
           <div class="text-right">
-            <span class="block text-orange-500 font-black text-sm italic">Subido hace 2h</span>
-            <button class="text-indigo-600 font-bold text-xs hover:underline mt-1 uppercase tracking-tighter">Validar Ahora →</button>
+            <span class="block" [ngClass]="{'text-orange-500': poliza.status !== 'Validado', 'text-emerald-600': poliza.status === 'Validado'}">
+              {{ poliza.status || 'Pendiente' }}
+            </span>
+            <button *ngIf="poliza.status !== 'Validado'" (click)="validarPoliza(poliza)" class="text-indigo-600 font-bold text-xs hover:underline mt-1 uppercase tracking-tighter">Validar Ahora →</button>
+          </div>
+        </div>
+
+        <h4 class="text-lg font-bold text-slate-700 mt-8">Siniestros</h4>
+        <div *ngIf="loadingSiniestros" class="text-center text-slate-400">Cargando siniestros...</div>
+        <div *ngIf="!loadingSiniestros && siniestros.length === 0" class="text-center text-slate-400">No hay siniestros registrados.</div>
+        <div *ngFor="let siniestro of siniestros" class="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-md transition-all group">
+          <div class="flex items-center gap-4">
+            <div class="h-12 w-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-2xl group-hover:bg-indigo-50 transition-colors">📄</div>
+            <div>
+              <p class="text-slate-800 font-bold">Siniestro #{{ siniestro.numero }} - Póliza: {{ siniestro.polizaId }}</p>
+              <p class="text-slate-400 text-xs font-medium italic">Descripción: {{ siniestro.descripcion }}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="block" [ngClass]="{'text-orange-500': siniestro.status !== 'Validado', 'text-emerald-600': siniestro.status === 'Validado'}">
+              {{ siniestro.status || 'Pendiente' }}
+            </span>
+            <button *ngIf="siniestro.status !== 'Validado'" (click)="validarSiniestro(siniestro)" class="text-indigo-600 font-bold text-xs hover:underline mt-1 uppercase tracking-tighter">Validar Ahora →</button>
           </div>
         </div>
       </div>
-    </div>
-
   </div>
+
 </div>
+

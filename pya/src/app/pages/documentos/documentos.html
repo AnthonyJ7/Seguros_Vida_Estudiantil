@@ -1,0 +1,26 @@
+<div class="max-w-3xl mx-auto mt-12 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
+  <h2 class="text-3xl font-black text-slate-800 mb-8">Documentos</h2>
+  <div *ngIf="loading" class="text-slate-500">Cargando documentos...</div>
+  <div *ngIf="error" class="text-red-600 font-bold">{{ error }}</div>
+  <div *ngIf="!loading && documentos.length === 0" class="text-slate-500">No hay documentos disponibles.</div>
+  <table *ngIf="!loading && documentos.length > 0" class="min-w-full mt-4">
+    <thead>
+      <tr>
+        <th class="text-left py-2 px-4">Nombre</th>
+        <th class="text-left py-2 px-4">Tipo</th>
+        <th class="text-left py-2 px-4">Fecha</th>
+        <th class="text-left py-2 px-4">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let doc of documentos">
+        <td class="py-2 px-4">{{ doc.nombreArchivo }}</td>
+        <td class="py-2 px-4">{{ doc.tipo }}</td>
+        <td class="py-2 px-4">{{ doc.fechaCarga | date:'short' }}</td>
+        <td class="py-2 px-4">
+          <a [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline">Ver/Descargar</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

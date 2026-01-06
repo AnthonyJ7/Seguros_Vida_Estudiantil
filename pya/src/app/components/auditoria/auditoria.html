@@ -1,0 +1,21 @@
+<h2>Registro de Auditoría</h2>
+
+<h3>Historial de Auditoría</h3>
+<table class="table-auto w-full">
+  <thead>
+    <tr>
+      <th class="px-4 py-2">Fecha</th>
+      <th class="px-4 py-2">Usuario</th>
+      <th class="px-4 py-2">Acción</th>
+      <th class="px-4 py-2">Descripción</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let auditoria of auditorias">
+      <td class="border px-4 py-2">{{ auditoria.fecha | date:'short' }}</td>
+      <td class="border px-4 py-2">{{ auditoria.usuario }}</td>
+      <td class="border px-4 py-2">{{ auditoria.accion }}</td>
+      <td class="border px-4 py-2">{{ auditoria.descripcion }}</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,20 @@
+<h2>Gestión de Notificaciones</h2>
+
+<h3>Lista de Notificaciones</h3>
+<ul>
+  <li *ngFor="let notificacion of notificaciones">
+    <strong>{{ notificacion.titulo }}</strong> - {{ notificacion.mensaje }} - Fecha: {{ notificacion.fecha | date:'short' }} - Usuario: {{ notificacion.usuarioId }} - Leída: {{ notificacion.leida ? 'Sí' : 'No' }}
+    <button (click)="deleteNotificacion(notificacion.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Notificación</h3>
+<form (ngSubmit)="addNotificacion()">
+  <input type="text" [(ngModel)]="newNotificacion.titulo" name="titulo" placeholder="Título" required>
+  <textarea [(ngModel)]="newNotificacion.mensaje" name="mensaje" placeholder="Mensaje" required></textarea>
+  <input type="text" [(ngModel)]="newNotificacion.usuarioId" name="usuarioId" placeholder="ID Usuario" required>
+  <label>
+    <input type="checkbox" [(ngModel)]="newNotificacion.leida" name="leida"> Leída
+  </label>
+  <button type="submit">Agregar</button>
+</form>

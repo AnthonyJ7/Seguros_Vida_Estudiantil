@@ -1,0 +1,19 @@
+<h2>Gestión de Beneficiarios</h2>
+
+<h3>Lista de Beneficiarios</h3>
+<ul>
+  <li *ngFor="let beneficiario of beneficiarios">
+    {{ beneficiario.nombre }} {{ beneficiario.apellido }} - Relación: {{ beneficiario.relacion }} - Porcentaje: {{ beneficiario.porcentaje }}% - Póliza: {{ beneficiario.polizaId }}
+    <button (click)="deleteBeneficiario(beneficiario.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Beneficiario</h3>
+<form (ngSubmit)="addBeneficiario()">
+  <input type="text" [(ngModel)]="newBeneficiario.nombre" name="nombre" placeholder="Nombre" required>
+  <input type="text" [(ngModel)]="newBeneficiario.apellido" name="apellido" placeholder="Apellido" required>
+  <input type="text" [(ngModel)]="newBeneficiario.relacion" name="relacion" placeholder="Relación" required>
+  <input type="number" [(ngModel)]="newBeneficiario.porcentaje" name="porcentaje" placeholder="Porcentaje" required>
+  <input type="text" [(ngModel)]="newBeneficiario.polizaId" name="polizaId" placeholder="ID Póliza" required>
+  <button type="submit">Agregar</button>
+</form>

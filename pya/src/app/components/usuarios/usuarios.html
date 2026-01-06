@@ -1,0 +1,22 @@
+<h2>Gestión de Usuarios</h2>
+
+<h3>Lista de Usuarios</h3>
+<ul>
+  <li *ngFor="let usuario of usuarios">
+    {{ usuario.nombre }} - {{ usuario.email }} - Rol: {{ usuario.rol }} - Activo: {{ usuario.activo ? 'Sí' : 'No' }}
+    <button (click)="deleteUsuario(usuario.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Usuario</h3>
+<form (ngSubmit)="addUsuario()">
+  <input type="text" [(ngModel)]="newUsuario.nombre" name="nombre" placeholder="Nombre" required>
+  <input type="email" [(ngModel)]="newUsuario.email" name="email" placeholder="Email" required>
+  <select [(ngModel)]="newUsuario.rol" name="rol" required>
+    <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+  </select>
+  <label>
+    <input type="checkbox" [(ngModel)]="newUsuario.activo" name="activo"> Activo
+  </label>
+  <button type="submit">Agregar</button>
+</form>

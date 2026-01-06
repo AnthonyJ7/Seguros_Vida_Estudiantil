@@ -1,0 +1,20 @@
+<h2>Gestión de Estudiantes</h2>
+
+<h3>Lista de Estudiantes</h3>
+<ul>
+  <li *ngFor="let estudiante of estudiantes">
+    {{ estudiante.nombre }} {{ estudiante.apellido }} - {{ estudiante.email }} - Tel: {{ estudiante.telefono }} - Nacimiento: {{ estudiante.fechaNacimiento | date:'shortDate' }} - Dir: {{ estudiante.direccion }}
+    <button (click)="deleteEstudiante(estudiante.id)">Eliminar</button>
+  </li>
+</ul>
+
+<h3>Agregar Estudiante</h3>
+<form (ngSubmit)="addEstudiante()">
+  <input type="text" [(ngModel)]="newEstudiante.nombre" name="nombre" placeholder="Nombre" required>
+  <input type="text" [(ngModel)]="newEstudiante.apellido" name="apellido" placeholder="Apellido" required>
+  <input type="email" [(ngModel)]="newEstudiante.email" name="email" placeholder="Email" required>
+  <input type="text" [(ngModel)]="newEstudiante.telefono" name="telefono" placeholder="Teléfono" required>
+  <input type="date" [(ngModel)]="newEstudiante.fechaNacimiento" name="fechaNacimiento" required>
+  <input type="text" [(ngModel)]="newEstudiante.direccion" name="direccion" placeholder="Dirección" required>
+  <button type="submit">Agregar</button>
+</form>
