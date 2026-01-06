@@ -28,14 +28,22 @@ export class SiniestrosComponent implements OnInit {
       const uid = localStorage.getItem('uid') || '';
       let docs = [];
       if (rol === 'GESTOR') {
-        docs = await this.firestoreService.getDocuments('siniestros');
+        docs = await this.firestoreService.getDocuments('tramites');
       } else {
-        docs = await this.firestoreService.getDocumentsWithCondition('siniestros', 'uidUsuario', '==', uid);
+        const estudiantes = await this.firestoreService.getDocumentsWithCondition('estudiante', 'uidUsuario', '==', uid);
+        const estudianteId = estudiantes.length ? estudiantes[0].id : null;
+        docs = estudianteId
+          ? await this.firestoreService.getDocumentsWithCondition('tramites', 'idEstudiante', '==', estudianteId)
+          : [];
       }
       // Convertir fechas si es necesario
       this.siniestros = docs.map(doc => ({
         ...doc,
-        fechaRegistro: doc.fechaRegistro && doc.fechaRegistro.toDate ? doc.fechaRegistro.toDate() : doc.fechaRegistro
+        fechaRegistro: (() => {
+          if (doc.fechaRegistro && doc.fechaRegistro.toDate) return doc.fechaRegistro.toDate();
+          const parsed = new Date(doc.fechaRegistro);
+          return isNaN(parsed.getTime()) ? new Date() : parsed;
+        })()
       }));
     } catch (e: any) {
       this.error = 'Error al cargar siniestros';

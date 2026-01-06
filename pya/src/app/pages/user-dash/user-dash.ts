@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FirestoreService } from '../../services/firestore.service';
+import { DashboardService, DashboardClienteData, DashboardGestorData } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,63 +11,43 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './user-dash.html'
 })
-export class UserDashComponent {
-  seguroActivo: boolean = true;
-  fechaVencimiento: string = '12/12/2026';
-  showForm: boolean = false;
-  newSiniestro: any = {};
+export class UserDashComponent implements OnInit {
+  // Datos según rol
+  datosCliente: DashboardClienteData | null = null;
+  datosGestor: DashboardGestorData | null = null;
+  cargando = true;
+  rol: string = '';
 
-  // Para gestión documental
-  public documentosUsuario: any[] = [];
-  public authService: AuthService;
+  constructor(
+    private dashboardService: DashboardService,
+    public authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  constructor(public firestoreService: FirestoreService, authService: AuthService) {
-    this.authService = authService;
+  async ngOnInit() {
+    this.rol = this.authService.getRole();
+    await this.cargarDatos();
   }
 
-  ngOnInit() {
-    this.cargarDocumentosUsuario();
-  }
+  async cargarDatos() {
+    this.cargando = true;
+    const uid = localStorage.getItem('uid') || '';
 
-  async cargarDocumentosUsuario() {
     try {
-      const usuarioUid = localStorage.getItem('uid') || '';
-      const rol = this.authService.getRole();
-      let docs = [];
-      if (rol === 'GESTOR') {
-        docs = await this.firestoreService.getDocuments('documentos');
+      console.log('[user-dash] rol detectado:', this.rol, 'uid:', uid);
+      if (this.rol === 'GESTOR') {
+        this.datosGestor = await this.dashboardService.getDatosGestor();
+        console.log('[user-dash] datos gestor', this.datosGestor);
+      } else if (this.rol === 'CLIENTE') {
+        this.datosCliente = await this.dashboardService.getDatosCliente(uid);
+        console.log('[user-dash] datos cliente', this.datosCliente);
       } else {
-        docs = await this.firestoreService.getDocumentsWithCondition('documentos', 'usuario', '==', usuarioUid);
+        console.warn('Rol no reconocido:', this.rol);
       }
-      // Convertir Timestamp a Date para fechaCarga
-      this.documentosUsuario = docs.map(doc => ({
-        ...doc,
-        fechaCarga: doc.fechaCarga && doc.fechaCarga.toDate ? doc.fechaCarga.toDate() : doc.fechaCarga
-      }));
     } catch (error) {
-      this.documentosUsuario = [];
+      console.error('Error cargando datos del dashboard:', error);
     }
-  }
-
-  toggleForm() {
-    this.showForm = !this.showForm;
-    console.log('Form toggled:', this.showForm);
-  }
-
-  async registrarSiniestro() {
-    try {
-      const usuarioUid = localStorage.getItem('uid') || '';
-        await this.firestoreService.registrarSiniestro(this.newSiniestro, usuarioUid);
-      this.newSiniestro = {};
-      this.showForm = false;
-      alert('Siniestro registrado exitosamente');
-    } catch (error) {
-      console.error('Error registrando siniestro:', error);
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert('Error al registrar el siniestro');
-      }
-    }
+    this.cargando = false;
+    this.cdr.detectChanges();
   }
 }

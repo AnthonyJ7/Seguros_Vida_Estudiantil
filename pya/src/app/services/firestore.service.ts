@@ -145,10 +145,10 @@ export class FirestoreService {
 
   // Obtiene el siguiente ID autoincrementable para siniestros
   async getNextSiniestroId(): Promise<number> {
-    const siniestros = await this.getDocuments('siniestros');
-    if (!siniestros.length) return 1;
+    const tramites = await this.getDocuments('tramites');
+    if (!tramites.length) return 1;
     // Buscar el mayor id actual
-    const maxId = Math.max(...siniestros.map(s => Number(s.idAuto) || 0));
+    const maxId = Math.max(...tramites.map(s => Number(s.idAuto) || 0));
     return maxId + 1;
   }
 
@@ -181,21 +181,22 @@ export class FirestoreService {
 
     // 4. Generar ID autoincrementable
     siniestro.idAuto = await this.getNextSiniestroId();
+    siniestro.codigoUnico = `TR-${new Date().getFullYear()}-${String(siniestro.idAuto).padStart(3, '0')}`;
 
     // 5. Registrar siniestro
-    const siniestroId = await this.addDocument('siniestros', siniestro);
+    const siniestroId = await this.addDocument('tramites', siniestro);
 
     // 6. Registrar auditoría
     await this.addDocument('auditoria', {
       accion: 'REGISTRAR_SINIESTRO',
       fechaHora: new Date().toISOString(),
-      idSiniestro: siniestroId,
+      idTramite: siniestroId,
       usuario: usuarioUid
     });
 
     // 7. Registrar notificación
     await this.addDocument('notificaciones', {
-      idSiniestro: siniestroId,
+      idTramite: siniestroId,
       idEstudiante: siniestro.idEstudiante,
       tipo: 'EMAIL',
       mensaje: 'Su siniestro fue registrado',

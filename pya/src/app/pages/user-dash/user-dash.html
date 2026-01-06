@@ -1,130 +1,188 @@
-<!-- Lista de documentos subidos -->
-<div *ngIf="documentosUsuario.length > 0" class="mt-8 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-  <h3 class="text-2xl font-black text-slate-800 mb-4">Mis Documentos Subidos</h3>
-  <table class="w-full text-left">
-    <thead>
-      <tr>
-        <th class="py-2">Nombre</th>
-        <th class="py-2">Tipo</th>
-        <th *ngIf="authService.getRole() === 'GESTOR'" class="py-2">Usuario</th>
-        <th class="py-2">Fecha</th>
-        <th class="py-2">Trámite</th>
-        <th class="py-2">Descargar</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let doc of documentosUsuario">
-        <td class="py-2">{{ doc.nombreArchivo }}</td>
-        <td class="py-2">{{ doc.tipo }}</td>
-        <td *ngIf="authService.getRole() === 'GESTOR'" class="py-2">{{ doc.usuario }}</td>
-        <td class="py-2">{{ doc.fechaCarga | date:'short' }}</td>
-        <td class="py-2">{{ doc.idTramite }}</td>
-        <td class="py-2"><a [href]="doc.url" target="_blank" class="text-indigo-600 underline">Descargar</a></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<!-- Subida de documentos solo para CLIENTE y GESTOR -->
-<div *ngIf="authService.getRole() === 'CLIENTE' || authService.getRole() === 'GESTOR'" class="mt-8 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-<!-- Eliminado formulario de subir documento -->
-<div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
-  
-  <!-- Botón para ir a la vista de Documentos -->
-  <div class="mb-6">
-    <a routerLink="/documentos" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">
-      <span class="material-icons">folder</span> Documentos
-    </a>
+<div class="max-w-6xl mx-auto space-y-8 animate-fade-in p-4">
+
+  <!-- Loader -->
+  <div *ngIf="cargando" class="text-center py-20">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    <p class="mt-4 text-slate-500">Cargando dashboard...</p>
   </div>
 
-  <!-- Botón para ver siniestros registrados -->
-  <div class="mb-6">
-    <a routerLink="/siniestros" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">
-      <span class="material-icons">assignment</span> Ver Siniestros Registrados
-    </a>
-  </div>
-
-  <div class="flex items-center justify-between">
-    <div>
-      <h2 class="text-4xl font-black text-slate-800 tracking-tighter italic uppercase">Mi Póliza de Vida</h2>
-      <p class="text-slate-500 font-medium">Gestiona tu protección y revisa tus beneficios activos.</p>
-    </div>
-    <div class="hidden md:block">
-      <span class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-2xl font-bold text-sm border border-indigo-100">
-        ID Cliente: #PYA-2026-99
-      </span>
-    </div>
-  </div>
-
-  <div class="relative overflow-hidden bg-white shadow-2xl shadow-slate-200/50 rounded-[2.5rem] border border-slate-100 transition-transform hover:scale-[1.01]">
-    <div class="absolute top-0 left-0 h-full w-3 bg-gradient-to-b from-emerald-400 to-green-600"></div>
+  <!-- DASHBOARD CLIENTE -->
+  <div *ngIf="!cargando && rol === 'CLIENTE' && datosCliente">
     
-    <div class="p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8">
-      <div class="flex items-center gap-6">
-        <div class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-4xl shadow-inner">
-          🛡️
-        </div>
+    <div class="mb-6">
+      <h2 class="text-4xl font-black text-slate-800">Mi Dashboard</h2>
+      <p class="text-slate-500">Bienvenido, {{ datosCliente.estudiante?.nombreCompleto || 'Estudiante' }}</p>
+    </div>
+
+    <!-- Estado del seguro -->
+    <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 rounded-2xl shadow-xl">
+      <div class="flex justify-between items-start">
         <div>
-          <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Estado del Seguro</p>
-          <div class="flex items-center gap-2">
-            <span class="relative flex h-3 w-3">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          <p class="text-emerald-100 text-sm font-bold mb-2">Estado de Cobertura</p>
+          <p class="text-4xl font-black">${{ datosCliente.estadoCobertura | number:'1.2-2' }}</p>
+          <p class="text-emerald-100 text-sm mt-2">Cédula: {{ datosCliente.estudiante?.cedula }}</p>
+        </div>
+        <div class="bg-white/20 p-3 rounded-xl">
+          <span class="text-3xl">🛡️</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mis Trámites -->
+    <div class="bg-white rounded-2xl shadow-xl p-6">
+      <h3 class="text-2xl font-black text-slate-800 mb-4">📋 Mis Trámites</h3>
+      
+      <div *ngIf="datosCliente.misTramites.length === 0" class="text-center py-8 text-slate-400">
+        No tienes trámites registrados
+      </div>
+
+      <div *ngFor="let tramite of datosCliente.misTramites" 
+           class="p-4 border border-slate-200 rounded-xl mb-3 hover:shadow-md transition-all">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-bold text-slate-800">{{ tramite.codigoUnico }}</p>
+            <p class="text-sm text-slate-600">{{ tramite.tipoTramite }} - {{ tramite.motivo }}</p>
+            <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold"
+                  [ngClass]="{
+                    'bg-amber-100 text-amber-700': tramite.estadoCaso === 'EN_VALIDACION',
+                    'bg-emerald-100 text-emerald-700': tramite.estadoCaso === 'APROBADO',
+                    'bg-red-100 text-red-700': tramite.estadoCaso === 'RECHAZADO'
+                  }">
+              {{ tramite.estadoCaso }}
             </span>
-            <p class="text-3xl font-black text-emerald-600 tracking-tight">EFECTUADO / ACTIVO</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400">{{ tramite.fechaRegistro | date:'short' }}</p>
+            <p *ngIf="tramite.montoAprobado > 0" class="text-lg font-bold text-emerald-600 mt-1">
+              ${{ tramite.montoAprobado }}
+            </p>
           </div>
         </div>
       </div>
 
-      <div class="flex gap-4 w-full md:w-auto">
-        <div class="flex-grow md:flex-grow-0 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-center md:text-right">
-          <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Próximo Pago</p>
-          <p class="text-xl font-bold text-slate-700">15 de Enero, 2026</p>
-          <p class="text-[10px] text-emerald-500 font-bold mt-1 uppercase tracking-tighter">● Débito automático activo</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    
-    <div class="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200">
-      <h4 class="font-bold text-indigo-100 text-sm uppercase tracking-widest mb-4">Cobertura Total</h4>
-      <p class="text-4xl font-black mb-2">$50,000.00</p>
-      <p class="text-indigo-200 text-xs">Protección integral por fallecimiento y accidentes graves.</p>
-      <button class="mt-6 w-full bg-white/10 hover:bg-white/20 border border-white/20 py-3 rounded-2xl font-bold transition-all text-sm">
-        Ver detalles técnicos
-      </button>
-    </div>
-
-    <div class="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50">
-      <h4 class="font-bold text-slate-400 text-sm uppercase tracking-widest mb-4">Beneficiarios</h4>
-      <div class="flex -space-x-3 mb-4">
-        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center font-bold text-xs">JP</div>
-        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-300 flex items-center justify-center font-bold text-xs">MA</div>
-        <div class="w-10 h-10 rounded-full border-2 border-white bg-blue-500 flex items-center justify-center text-white text-xs font-bold">+1</div>
-      </div>
-      <p class="text-slate-600 text-sm font-medium leading-relaxed">Tienes 3 personas designadas como beneficiarios.</p>
-    </div>
-
-    <div class="bg-slate-900 rounded-[2rem] p-8 text-white shadow-xl shadow-slate-900/20">
-      <h4 class="font-bold text-slate-500 text-sm uppercase tracking-widest mb-4">¿Necesitas ayuda?</h4>
-      <p class="text-lg font-bold mb-4 leading-tight text-blue-400">Asistencia 24/7 lista para atenderte.</p>
-      <button class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-2xl font-black transition-all text-xs flex items-center justify-center gap-2">
-        <span>📞</span> LLAMAR AHORA
-      </button>
-    </div>
-
-  </div>
-
-  <!-- Sección de Registro de Siniestro -->
-  <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-    <div class="p-8">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-slate-800">Registrar Siniestro</h3>
-        <a routerLink="/registro-siniestro" class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-all">
-          Ir al formulario
+      <div class="mt-4">
+        <a routerLink="/registro-siniestro" 
+           class="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-center hover:bg-indigo-700 transition-all">
+          ➕ Registrar Nuevo Trámite
         </a>
       </div>
     </div>
+
+    <!-- Mis Documentos -->
+    <div class="bg-white rounded-2xl shadow-xl p-6">
+      <h3 class="text-2xl font-black text-slate-800 mb-4">📄 Mis Documentos</h3>
+      
+      <div *ngIf="datosCliente.misDocumentos.length === 0" class="text-center py-8 text-slate-400">
+        No has subido documentos
+      </div>
+
+      <div *ngFor="let doc of datosCliente.misDocumentos"
+           class="p-4 bg-slate-50 rounded-xl mb-3 flex justify-between items-center">
+        <div>
+          <p class="font-bold text-slate-800">{{ doc.nombreArchivo }}</p>
+          <p class="text-sm text-slate-500">Tipo: {{ doc.tipo }}</p>
+          <p class="text-xs text-slate-400">{{ doc.fechaCarga | date:'short' }}</p>
+        </div>
+        <a *ngIf="doc.url" [href]="doc.url" target="_blank" 
+           class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700">
+          Descargar
+        </a>
+      </div>
+
+      <div class="mt-4">
+        <a routerLink="/documentos" 
+           class="block w-full bg-slate-800 text-white font-bold py-3 rounded-xl text-center hover:bg-slate-900 transition-all">
+          📎 Subir Nuevo Documento
+        </a>
+      </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div class="bg-white rounded-2xl shadow-xl p-6">
+      <h3 class="text-2xl font-black text-slate-800 mb-4">🔔 Notificaciones</h3>
+      
+      <div *ngIf="datosCliente.misNotificaciones.length === 0" class="text-center py-8 text-slate-400">
+        No tienes notificaciones
+      </div>
+
+      <div *ngFor="let notif of datosCliente.misNotificaciones.slice(0, 5)"
+           class="p-4 border-l-4 border-indigo-500 bg-indigo-50 rounded-r-xl mb-3">
+        <p class="font-bold text-slate-800">{{ notif.tipo }}</p>
+        <p class="text-sm text-slate-600">{{ notif.mensaje }}</p>
+        <p class="text-xs text-slate-400 mt-1">{{ notif.fechaEnvio | date:'short' }}</p>
+      </div>
+    </div>
+
   </div>
+
+  <!-- DASHBOARD GESTOR -->
+  <div *ngIf="!cargando && rol === 'GESTOR' && datosGestor">
+    
+    <div class="mb-6">
+      <h2 class="text-4xl font-black text-slate-800">Dashboard Gestor</h2>
+      <p class="text-slate-500">Panel de control administrativo</p>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-amber-50 border-2 border-amber-200 p-6 rounded-2xl">
+        <p class="text-xs font-black text-amber-600 uppercase mb-2">⏳ En Validación</p>
+        <p class="text-4xl font-black text-amber-700">{{ datosGestor.tramitesEnValidacion.length }}</p>
+      </div>
+      <div class="bg-emerald-50 border-2 border-emerald-200 p-6 rounded-2xl">
+        <p class="text-xs font-black text-emerald-600 uppercase mb-2">👨‍🎓 Estudiantes Activos</p>
+        <p class="text-4xl font-black text-emerald-700">{{ datosGestor.estudiantesActivos }}</p>
+      </div>
+      <div class="bg-indigo-50 border-2 border-indigo-200 p-6 rounded-2xl">
+        <p class="text-xs font-black text-indigo-600 uppercase mb-2">📅 Trámites Hoy</p>
+        <p class="text-4xl font-black text-indigo-700">{{ datosGestor.tramitesHoy }}</p>
+      </div>
+    </div>
+
+    <!-- Trámites en Validación -->
+    <div class="bg-white rounded-2xl shadow-xl p-6">
+      <h3 class="text-2xl font-black text-slate-800 mb-4">📋 Trámites en Validación</h3>
+      
+      <div *ngIf="datosGestor.tramitesEnValidacion.length === 0" class="text-center py-8 text-slate-400">
+        No hay trámites pendientes
+      </div>
+
+      <div *ngFor="let tramite of datosGestor.tramitesEnValidacion"
+           class="p-4 border border-amber-300 bg-amber-50 rounded-xl mb-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-bold text-slate-800">{{ tramite.codigoUnico }}</p>
+            <p class="text-sm text-slate-600">{{ tramite.tipoTramite }} - {{ tramite.motivo }}</p>
+            <p class="text-xs text-slate-400 mt-1">Registrado: {{ tramite.fechaRegistro | date:'short' }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700">
+              ✓ Aprobar
+            </button>
+            <button class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700">
+              ✗ Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <a routerLink="/estudiantes" 
+         class="block p-6 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl hover:shadow-xl transition-all">
+        <p class="text-3xl mb-2">👨‍🎓</p>
+        <p class="text-xl font-black">Gestionar Estudiantes</p>
+        <p class="text-indigo-100 text-sm">Crear y actualizar registros</p>
+      </a>
+      <a routerLink="/documentos" 
+         class="block p-6 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl hover:shadow-xl transition-all">
+        <p class="text-3xl mb-2">📁</p>
+        <p class="text-xl font-black">Documentos</p>
+        <p class="text-emerald-100 text-sm">Revisar y validar documentación</p>
+      </a>
+    </div>
+
+  </div>
+
 </div>

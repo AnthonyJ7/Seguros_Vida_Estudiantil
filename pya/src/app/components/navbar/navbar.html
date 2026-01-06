@@ -1,86 +1,233 @@
 <aside 
   [class.w-72]="isOpen" 
   [class.w-20]="!isOpen"
-  class="fixed top-0 left-0 h-full bg-[#0d0221] text-white z-40 shadow-[10px_0_30px_rgba(88,28,135,0.3)] transition-all duration-300 ease-in-out border-r border-purple-900/50 flex flex-col">
+  [class]="roleStyles?.bgColor || 'bg-slate-900'"
+  class="fixed top-0 left-0 h-full text-white z-40 shadow-xl transition-all duration-300 ease-in-out border-r flex flex-col"
+  [ngClass]="roleStyles?.borderColor || 'border-slate-700'">
   
-  <div class="h-16 flex items-center bg-gradient-to-r from-[#6366f1] to-[#a855f7] px-4 overflow-hidden shrink-0">
-    <button (click)="toggleMenu()" class="min-w-[40px] h-10 flex items-center justify-center hover:bg-white/20 rounded-xl transition-all active:scale-90">
+  <!-- Header con color dinámico según rol -->
+  <div 
+    class="h-16 flex items-center px-4 overflow-hidden shrink-0 transition-all duration-300"
+    [style.backgroundColor]="getRoleColor()"
+    [style.opacity]="0.9">
+    
+    <button 
+      (click)="toggleMenu()" 
+      class="min-w-[40px] h-10 flex items-center justify-center hover:bg-white/20 rounded-lg transition-all active:scale-90">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
-    <span *ngIf="isOpen" class="ml-4 font-black italic tracking-tighter text-xl whitespace-nowrap drop-shadow-md">
-      PYA <span class="text-purple-200">SEGUROS</span>
+    
+    <span *ngIf="isOpen" class="ml-4 font-black italic tracking-tighter text-lg whitespace-nowrap drop-shadow-lg">
+      PYA <span class="opacity-80">SEGUROS</span>
     </span>
   </div>
 
-  <div class="flex-grow flex flex-col p-4">
-    <div class="mb-6 flex items-center p-3 rounded-2xl bg-purple-900/30 border border-purple-500/30">
-      <div class="min-w-[40px] h-10 flex items-center justify-center bg-purple-500 rounded-xl font-bold shadow-lg uppercase">
-        {{ (authService.getRole() || 'U').charAt(0) }}
+  <!-- Contenido principal -->
+  <div class="flex-grow flex flex-col p-4 overflow-y-auto">
+    
+    <!-- Información del usuario -->
+    <div 
+      class="mb-6 p-4 rounded-2xl border transition-all duration-300"
+      [ngClass]="[roleStyles?.badgeColor, roleStyles?.borderColor]">
+      
+      <div class="flex items-center mb-3">
+        <div 
+          class="min-w-[48px] h-12 flex items-center justify-center rounded-lg font-bold shadow-lg text-2xl"
+          [style.backgroundColor]="getRoleColor()">
+          {{ getRoleIcon() }}
+        </div>
+        
+        <div *ngIf="isOpen" class="ml-3 flex-grow">
+          <p class="text-xs font-black opacity-70 uppercase tracking-widest leading-none mb-1">
+            {{ roleConfig?.nivel }}
+          </p>
+          <p class="font-bold text-sm">{{ roleConfig?.nombre }}</p>
+          <p class="text-xs opacity-75 mt-1">{{ userName }}</p>
+        </div>
       </div>
-      <div *ngIf="isOpen" class="ml-3">
-        <p class="text-[10px] text-purple-400 font-black uppercase tracking-widest leading-none mb-1">Acceso Nivel</p>
-        <p class="text-white font-bold text-xs uppercase">{{ authService.getRole() }}</p>
+      
+      <div *ngIf="isOpen" class="text-xs leading-relaxed opacity-80">
+        {{ roleConfig?.descripcion }}
       </div>
     </div>
 
-    <nav class="flex-grow space-y-3">
-      <div *ngIf="authService.getRole() === 'USER'" class="space-y-2">
-        <a routerLink="/user-dashboard" routerLinkActive="bg-purple-600/30 border-purple-500/50" class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group">
-          <span class="text-2xl min-w-[32px]">🏠</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Mi Póliza</span>
-        </a>
-        <a class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group cursor-pointer">
-          <span class="text-2xl min-w-[32px]">💳</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Pagos</span>
-        </a>
-      </div>
-
-      <div *ngIf="authService.getRole() === 'GESTOR'" class="space-y-2">
-        <a routerLink="/user-dashboard" routerLinkActive="bg-purple-600/30 border-purple-500/50" class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group">
-          <span class="text-2xl min-w-[32px]">📁</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Documentos</span>
-        </a>
-        <a class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group cursor-pointer">
-          <span class="text-2xl min-w-[32px]">📝</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Trámites</span>
-        </a>
-      </div>
-
-      <div *ngIf="authService.getRole() === 'INSURER'" class="space-y-2">
-        <a routerLink="/insurer-dashboard" routerLinkActive="bg-purple-600/30 border-purple-500/50" class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group">
-          <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Validar</span>
-        </a>
-        <a class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group cursor-pointer">
-          <span class="text-2xl min-w-[32px]">👥</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Clientes</span>
-        </a>
-      </div>
-
-      <div *ngIf="authService.getRole() === 'ADMIN'" class="space-y-2">
-        <a routerLink="/admin-dashboard" routerLinkActive="bg-purple-600/30 border-purple-500/50" class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group">
+    <!-- Navegación por rol -->
+    <nav class="flex-grow space-y-2">
+      
+      <!-- CLIENTE: Acceso básico -->
+      <div *ngIf="userRole === 'CLIENTE'" class="space-y-2">
+        <a 
+          *ngIf="canAccess('dashboard')"
+          routerLink="/user-dash" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
           <span class="text-2xl min-w-[32px]">📊</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Global</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mi Dashboard</span>
         </a>
-        <a class="flex items-center p-3 rounded-xl hover:bg-purple-600/20 transition-all group cursor-pointer">
-          <span class="text-2xl min-w-[32px]">⚙️</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-purple-100">Ajustes</span>
+        
+        <a 
+          *ngIf="canAccess('polizas')"
+          routerLink="/polizas" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📋</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mis Pólizas</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('siniestros')"
+          routerLink="/siniestros" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">⚠️</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Reportar Siniestro</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('documentos')"
+          routerLink="/documentos" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📄</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Documentos</span>
         </a>
       </div>
+
+      <!-- GESTOR: Gestión administrativa -->
+      <div *ngIf="userRole === 'GESTOR'" class="space-y-2">
+        <a 
+          *ngIf="canAccess('dashboard')"
+          routerLink="/admin-dash" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📊</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Control</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('estudiantes')"
+          routerLink="/estudiantes" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">👨‍🎓</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Estudiantes</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('siniestros')"
+          routerLink="/siniestros" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📝</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Siniestros</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('documentos')"
+          routerLink="/documentos" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📁</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Documentos</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('reportes')"
+          routerLink="/reportes" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📈</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Reportes</span>
+        </a>
+      </div>
+
+      <!-- ADMIN: Control total -->
+      <div *ngIf="userRole === 'ADMIN'" class="space-y-2">
+        <a 
+          *ngIf="canAccess('dashboard')"
+          routerLink="/admin-dash" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">🎛️</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Control Total</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('usuarios')"
+          routerLink="/usuarios" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">👥</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Usuarios</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('estudiantes')"
+          routerLink="/estudiantes" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">👨‍🎓</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Estudiantes</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('polizas')"
+          routerLink="/polizas" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">📋</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Pólizas</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('siniestros')"
+          routerLink="/siniestros" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">⚠️</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Siniestros</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('auditoria')"
+          routerLink="/auditoria" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">🔍</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Auditoría</span>
+        </a>
+
+        <a 
+          *ngIf="canAccess('configuracion')"
+          routerLink="/configuracion" 
+          routerLinkActive="opacity-100 scale-105" 
+          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
+          <span class="text-2xl min-w-[32px]">⚙️</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Configuración</span>
+        </a>
+      </div>
+
     </nav>
 
-    <div class="mt-auto pt-4 border-t border-purple-900/50">
-      <button (click)="logout()" 
-        class="w-full flex items-center p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20">
-        <div class="min-w-[32px] flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-          </svg>
-        </div>
-        <span *ngIf="isOpen" class="ml-3 font-black text-[10px] tracking-[0.2em] uppercase">Cerrar Sesión</span>
-      </button>
-    </div>
+    <!-- Separador -->
+    <div class="my-4 h-px bg-white/10"></div>
+
+  </div>
+
+  <!-- Footer con botón de logout -->
+  <div class="p-4 border-t border-white/10">
+    <button 
+      (click)="logout()" 
+      class="w-full flex items-center p-3 rounded-xl transition-all font-bold text-sm gap-3"
+      [ngClass]="roleStyles?.buttonColor || 'bg-emerald-600 hover:bg-emerald-700'">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0110.5 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0116.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3 0-3-3m0 0l3-3m-3 3h15" />
+      </svg>
+      
+      <span *ngIf="isOpen" class="uppercase tracking-wider">Cerrar Sesión</span>
+    </button>
   </div>
 </aside>

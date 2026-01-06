@@ -25,9 +25,12 @@ export class AuthService {
       case 'ADMIN':
         this.router.navigate(['/admin-dashboard']);
         break;
-      case 'INSURER':
-        this.router.navigate(['/insurer-dashboard']);
+        case 'GESTOR':
+          this.router.navigate(['/gestor-dashboard']);
         break;
+        case 'CLIENTE':
+          this.router.navigate(['/user-dashboard']);
+          break;
       default:
         this.router.navigate(['/user-dashboard']);
         break;
