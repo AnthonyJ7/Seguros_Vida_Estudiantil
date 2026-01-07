@@ -37,36 +37,20 @@ export class NotificacionesRepository {
   async obtenerPorDestinatario(destinatario: string, limite: number = 50): Promise<Notificacion[]> {
     const snapshot = await this.collection
       .where('destinatario', '==', destinatario)
+      .orderBy('fechaEnvio', 'desc')
       .limit(limite)
       .get();
     
-    const notificaciones = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        idNotificacion: doc.id,
-        ...data,
-        fechaEnvio: data.fechaEnvio?.toDate ? data.fechaEnvio.toDate() : data.fechaEnvio
-      } as Notificacion;
-    });
-    // Ordenar en memoria en lugar de en Firestore
-    return notificaciones.sort((a, b) => new Date(b.fechaEnvio).getTime() - new Date(a.fechaEnvio).getTime());
+    return snapshot.docs.map(doc => ({ idNotificacion: doc.id, ...doc.data() } as Notificacion));
   }
 
   async obtenerNoLeidas(destinatario: string): Promise<Notificacion[]> {
     const snapshot = await this.collection
       .where('destinatario', '==', destinatario)
       .where('leida', '==', false)
+      .orderBy('fechaEnvio', 'desc')
       .get();
     
-    const notificaciones = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        idNotificacion: doc.id,
-        ...data,
-        fechaEnvio: data.fechaEnvio?.toDate ? data.fechaEnvio.toDate() : data.fechaEnvio
-      } as Notificacion;
-    });
-    // Ordenar en memoria en lugar de en Firestore
-    return notificaciones.sort((a, b) => new Date(b.fechaEnvio).getTime() - new Date(a.fechaEnvio).getTime());
+    return snapshot.docs.map(doc => ({ idNotificacion: doc.id, ...doc.data() } as Notificacion));
   }
 }

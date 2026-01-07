@@ -24,11 +24,9 @@ tramitesRouter.get('/', verifyToken, async (req: RequestWithUser, res: Response)
   try {
     const rol = req.user?.rol;
     const uid = req.user?.uid as string;
-    const estudiante = req.query.estudiante as string | undefined;
-    const result = await service.listarTramites({ rol, uid, estudiante });
+    const result = await service.listarTramites({ rol, uid });
     res.json(result);
   } catch (err: any) {
-    console.error('[tramites] error listing:', err?.message);
     res.status(400).json({ error: err.message || 'No se pudo listar trámites' });
   }
 });

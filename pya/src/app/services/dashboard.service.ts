@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from './api.service';
-import { firstValueFrom } from 'rxjs';
+import { FirestoreService } from './firestore.service';
 
 /**
  * Interfaces para datos del dashboard
@@ -38,7 +37,7 @@ export interface DashboardGestorData {
 })
 export class DashboardService {
 
-  constructor(private api: ApiService) {}
+  constructor(private firestore: FirestoreService) {}
 
   /**
    * Obtener datos del dashboard ADMIN
@@ -47,11 +46,11 @@ export class DashboardService {
     try {
       // Obtener todos los datos necesarios en paralelo
       const [usuarios, estudiantes, tramites, auditorias, aseguradoras] = await Promise.all([
-        firstValueFrom(this.api.get<any[]>('/usuarios')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/tramites')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/auditoria')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/aseguradoras')).catch(() => [])
+        this.firestore.getDocuments('usuarios'),
+        this.firestore.getDocuments('estudiante'),
+        this.firestore.getDocuments('tramites'),
+        this.firestore.getDocuments('auditoria'),
+        this.firestore.getDocuments('aseguradoras')
       ]);
 
       // Contar trámites por estado
@@ -62,7 +61,7 @@ export class DashboardService {
       };
 
       // Obtener últimas 5 auditorías
-      const ultimasAuditorias = (auditorias || [])
+      const ultimasAuditorias = auditorias
         .sort((a, b) => {
           const dateA = this.convertirFecha(a.fechaHora);
           const dateB = this.convertirFecha(b.fechaHora);
@@ -75,12 +74,12 @@ export class DashboardService {
         .slice(0, 5);
 
       return {
-        totalUsuarios: (usuarios || []).length,
-        totalEstudiantes: (estudiantes || []).length,
-        totalTramites: (tramites || []).length,
+        totalUsuarios: usuarios.length,
+        totalEstudiantes: estudiantes.length,
+        totalTramites: tramites.length,
         tramitesPorEstado,
         ultimasAuditorias,
-        aseguradoras: aseguradoras || []
+        aseguradoras
       };
     } catch (error) {
       console.error('Error obteniendo datos admin:', error);
@@ -100,18 +99,23 @@ export class DashboardService {
    */
   async getDatosCliente(uid: string): Promise<DashboardClienteData> {
     try {
-      const estudiantesAll = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
-      const estudiante = (estudiantesAll || []).find(e => e.uidUsuario === uid) || null;
+      // Obtener estudiante del usuario
+      const estudiantes = await this.firestore.getDocumentsWithCondition('estudiante', 'uidUsuario', '==', uid);
+      const estudiante = estudiantes.length > 0 ? estudiantes[0] : null;
+      // Obtener trámites del estudiante (si existe)
       const tramites = estudiante
-        ? await firstValueFrom(this.api.get<any[]>('/tramites', { estudiante: estudiante.id })).catch(() => [])
+        ? await this.firestore.getDocumentsWithCondition('tramites', 'idEstudiante', '==', estudiante.id)
         : [];
 
-      const todosDocs = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
+      // Obtener documentos asociados a los trámites del estudiante
+      const todosDocs = await this.firestore.getDocuments('documentos');
       const idsTramites = new Set(tramites.map(t => t.id || t.codigoUnico));
       const documentos = todosDocs.filter(d => idsTramites.has(d.idTramite));
 
-      const notificacionesAll = await firstValueFrom(this.api.get<any[]>('/notificaciones')).catch(() => []);
-      const notificaciones = estudiante ? (notificacionesAll || []).filter(n => n.idEstudiante === estudiante.id) : [];
+      // Obtener notificaciones del estudiante
+      const notificaciones = estudiante
+        ? await this.firestore.getDocumentsWithCondition('notificaciones', 'idEstudiante', '==', estudiante.id)
+        : [];
 
       return {
         estudiante,
@@ -147,12 +151,17 @@ export class DashboardService {
    */
   async getDatosGestor(): Promise<DashboardGestorData> {
     try {
-      const tramites = await firstValueFrom(this.api.get<any[]>('/tramites')).catch(() => []);
+      // Obtener todos los trámites
+      const tramites = await this.firestore.getDocuments('tramites');
       
       // Filtrar trámites en validación
       const tramitesEnValidacion = tramites.filter(t => t.estadoCaso === 'EN_VALIDACION');
-      const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
-      const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
+
+      // Obtener documentos
+      const documentos = await this.firestore.getDocuments('documentos');
+
+      // Obtener estudiantes activos
+      const estudiantes = await this.firestore.getDocuments('estudiante');
       const estudiantesActivos = estudiantes.filter(e => e.estadoAcademico === 'ACTIVO').length;
 
       // Contar trámites de hoy
@@ -189,11 +198,14 @@ export class DashboardService {
    */
   async getTramiteConEstudiante(idTramite: string): Promise<any> {
     try {
-      const tramite = await firstValueFrom(this.api.get<any>(`/tramites/${idTramite}`)).catch(() => null);
-      if (!tramite) return null;
+      const tramites = await this.firestore.getDocumentsWithCondition('tramites', 'id', '==', idTramite);
+      if (tramites.length === 0) return null;
+
+      const tramite = tramites[0];
       
       // Obtener estudiante
-      const estudiante = await firstValueFrom(this.api.get<any>(`/estudiantes/${tramite.idEstudiante}`)).catch(() => null);
+      const estudiantes = await this.firestore.getDocumentsWithCondition('estudiante', 'id', '==', tramite.idEstudiante);
+      const estudiante = estudiantes.length > 0 ? estudiantes[0] : null;
 
       return {
         ...tramite,
@@ -211,11 +223,14 @@ export class DashboardService {
    */
   async getTramiteConAseguradora(idTramite: string): Promise<any> {
     try {
-      const tramite = await firstValueFrom(this.api.get<any>(`/tramites/${idTramite}`)).catch(() => null);
-      if (!tramite) return null;
+      const tramites = await this.firestore.getDocumentsWithCondition('tramites', 'id', '==', idTramite);
+      if (tramites.length === 0) return null;
+
+      const tramite = tramites[0];
       
       // Obtener aseguradora
-      const aseguradora = await firstValueFrom(this.api.get<any>(`/aseguradoras/${tramite.idAseguradora}`)).catch(() => null);
+      const aseguradoras = await this.firestore.getDocumentsWithCondition('aseguradoras', 'id', '==', tramite.idAseguradora);
+      const aseguradora = aseguradoras.length > 0 ? aseguradoras[0] : null;
 
       return {
         ...tramite,

@@ -3,7 +3,6 @@ import { Router, NavigationEnd, RouterOutlet } from '@angular/router'; // Añadi
 import { filter } from 'rxjs/operators'; // Añadido filter
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './components/navbar/navbar'; // Asegura que la ruta sea correcta
-import { BackendStatusService } from './services/backend-status.service';
 
 @Component({
   selector: 'app-root',
@@ -13,10 +12,8 @@ import { BackendStatusService } from './services/backend-status.service';
 })
 export class AppComponent {
   showNavbar: boolean = false;
-  backendDown = false;
-  backendMsg = '';
 
-  constructor(private router: Router, private backend: BackendStatusService) {
+  constructor(private router: Router) {
     // Esto soluciona los errores de tu captura:
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
@@ -24,8 +21,5 @@ export class AppComponent {
       // Si estamos en login, showNavbar es FALSE
       this.showNavbar = !(event.urlAfterRedirects.includes('login') || event.urlAfterRedirects === '/');
     });
-
-    this.backend.down$.subscribe(v => this.backendDown = v);
-    this.backend.message$.subscribe(m => this.backendMsg = m);
   }
 }

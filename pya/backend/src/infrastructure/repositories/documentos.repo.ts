@@ -1,18 +1,10 @@
 // AdaptadorDocumentoFirebase
 import { db, storage } from '../../config/firebase';
-import admin from 'firebase-admin';
 import { Documento, TipoDocumento } from '../../domain/documento';
 
 export class DocumentosRepository {
   private collection = db.collection('documentos');
-  private getBucket() {
-    const configured = (admin.app().options as any).storageBucket as string | undefined;
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET || configured;
-    if (!bucketName) {
-      throw new Error('Firebase Storage bucket no configurado. Defina FIREBASE_STORAGE_BUCKET o storageBucket en firebase.ts');
-    }
-    return storage.bucket(bucketName);
-  }
+  private bucket = storage.bucket();
 
   async obtenerPorId(idDocumento: string): Promise<Documento | null> {
     const doc = await this.collection.doc(idDocumento).get();
@@ -49,7 +41,7 @@ export class DocumentosRepository {
     if (doc?.urlArchivo) {
       // Eliminar archivo de Storage
       try {
-        const file = this.getBucket().file(doc.urlArchivo);
+        const file = this.bucket.file(doc.urlArchivo);
         await file.delete();
       } catch (error) {
         console.error('Error eliminando archivo de Storage:', error);
@@ -61,10 +53,9 @@ export class DocumentosRepository {
   // Método para subir archivo a Storage (acepta ruta local del archivo temporal)
   async subirArchivo(localFilePath: string, tramiteId: string): Promise<string> {
     const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
-    const bucket = this.getBucket();
-    const fileUpload = bucket.file(fileName);
+    const fileUpload = this.bucket.file(fileName);
 
-    await bucket.upload(localFilePath, {
+    await this.bucket.upload(localFilePath, {
       destination: fileName,
       metadata: {
         cacheControl: 'public, max-age=31536000'

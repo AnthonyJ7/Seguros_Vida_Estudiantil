@@ -84,15 +84,4 @@ estudiantesRouter.patch('/:id/estado', verifyToken, requireRole(['gestor', 'admi
   }
 });
 
-// Eliminar estudiante
-estudiantesRouter.delete('/:id', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
-  try {
-    const uid = req.user?.uid as string;
-    await service.eliminar(req.params.id, uid);
-    res.json({ mensaje: 'Estudiante eliminado correctamente' });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
 export { estudiantesRouter };
