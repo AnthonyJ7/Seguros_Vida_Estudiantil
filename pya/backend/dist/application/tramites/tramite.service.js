@@ -256,9 +256,12 @@ class TramiteService {
         };
     }
     async listarTramites(params) {
-        if (params.rol === 'gestor' || params.rol === 'admin') {
+        const rolUpper = (params.rol || '').toUpperCase();
+        if (rolUpper === 'GESTOR' || rolUpper === 'ADMIN') {
+            // GESTOR y ADMIN ven todos
             return this.repo.listarTodos();
         }
+        // CLIENTE solo ve sus propios (por uid creador)
         return this.repo.listarPorCreador(params.uid);
     }
     async obtenerPorId(id) {

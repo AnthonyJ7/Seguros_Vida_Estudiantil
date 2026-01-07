@@ -47,7 +47,7 @@ estudiantesRouter.get('/:id', verifyToken, async (req: RequestWithUser, res: Res
 });
 
 // Listar estudiantes
-estudiantesRouter.get('/', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
+estudiantesRouter.get('/', verifyToken, requireRole(['ADMIN', 'GESTOR']), async (req: RequestWithUser, res: Response) => {
   try {
     const estudiantes = await service.listar();
     res.json(estudiantes);
@@ -57,7 +57,7 @@ estudiantesRouter.get('/', verifyToken, requireRole(['gestor', 'admin']), async 
 });
 
 // Crear estudiante
-estudiantesRouter.post('/', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
+estudiantesRouter.post('/', verifyToken, requireRole(['ADMIN', 'GESTOR']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const estudiante = await service.crear(req.body, uid);
@@ -68,7 +68,7 @@ estudiantesRouter.post('/', verifyToken, requireRole(['gestor', 'admin']), async
 });
 
 // Actualizar estado académico
-estudiantesRouter.patch('/:id/estado', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
+estudiantesRouter.patch('/:id/estado', verifyToken, requireRole(['ADMIN', 'GESTOR']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const { estadoAcademico } = req.body;

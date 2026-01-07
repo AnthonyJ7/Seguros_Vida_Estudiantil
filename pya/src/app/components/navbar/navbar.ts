@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
-export class NavbarComponent implements OnInit, OnDestroy {
+export class NavbarComponent implements OnInit, OnDestroy, AfterViewInit {
   isOpen = true;
   userRole: string = '';
   roleConfig: RoleConfig | null = null;
@@ -35,7 +35,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('[navbar] ngOnInit ejecutado');
     this.loadUserData();
-    this.iniciarPollingNotificaciones();
+  }
+
+  ngAfterViewInit() {
+    // Diferimos el polling al siguiente tick y solo si no es ADMIN
+    setTimeout(() => {
+      if (this.userRole !== 'ADMIN') {
+        this.iniciarPollingNotificaciones();
+      }
+    }, 0);
   }
 
   ngOnDestroy() {

@@ -1,7 +1,7 @@
 <div class="page">
   <h2 class="title">Gestionar Estudiantes</h2>
 
-  <div class="grid">
+  <div class="grid" *ngIf="rol !== 'ADMIN'">
     <section class="card">
       <h3>Verificar elegibilidad</h3>
       <div class="row">
@@ -51,7 +51,7 @@
           <th>Período</th>
           <th>Estado</th>
           <th>Cobertura</th>
-          <th>Acciones</th>
+          <th *ngIf="rol !== 'ADMIN'">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -60,7 +60,8 @@
           <td>{{ est.cedula }}</td>
           <td>{{ est.periodoAcademico }}</td>
           <td>
-            <select [(ngModel)]="estadoNuevo[est.idEstudiante || est.id]">
+            <span *ngIf="rol === 'ADMIN'">{{ est.estadoAcademico }}</span>
+            <select *ngIf="rol !== 'ADMIN'" [(ngModel)]="estadoNuevo[est.idEstudiante || est.id]">
               <option [ngValue]="undefined">-- cambiar --</option>
               <option value="activo">Activo</option>
               <option value="inactivo">Inactivo</option>
@@ -69,7 +70,7 @@
             </select>
           </td>
           <td>{{ est.estadoCobertura }}</td>
-          <td>
+          <td *ngIf="rol !== 'ADMIN'">
             <button (click)="actualizarEstado(est)" [disabled]="actualizandoId === (est.idEstudiante || est.id)">Actualizar</button>
             <button (click)="eliminar(est)" [disabled]="borrandoId === (est.idEstudiante || est.id)" style="color: red; margin-left: 8px;">Eliminar</button>
           </td>

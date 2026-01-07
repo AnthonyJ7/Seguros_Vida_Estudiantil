@@ -30,38 +30,40 @@
     </tbody>
   </table>
 
-  <hr class="my-8" />
-  <h3 class="text-2xl font-black text-slate-800 mb-4">Probar Backend (flujo rápido)</h3>
-  <div class="grid gap-3 mb-4">
-    <input class="border rounded px-3 py-2" placeholder="ID Estudiante" [(ngModel)]="nuevo.idEstudiante" />
-    <input class="border rounded px-3 py-2" placeholder="Descripción" [(ngModel)]="nuevo.descripcion" />
-    <button (click)="crearTramiteBackend()" [disabled]="creando" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">
-      {{ creando ? 'Creando…' : 'Crear Trámite' }}
-    </button>
-    <input class="border rounded px-3 py-2" placeholder="ID Trámite" [(ngModel)]="tramiteId" />
-    <div class="flex gap-2 flex-wrap">
-      <button (click)="validarBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Validar</button>
-      <input class="border rounded px-3 py-2" placeholder="ID Aseguradora" [(ngModel)]="idAseguradora" />
-      <button (click)="enviarAsegBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Enviar a Aseguradora</button>
-      <button (click)="aprobarBackend()" class="px-3 py-2 bg-green-700 text-white rounded">Registrar Aprobado</button>
-      <button (click)="solicitarCorreccionesBackend()" class="px-3 py-2 bg-amber-600 text-white rounded">Solicitar Correcciones</button>
-      <input class="border rounded px-3 py-2" placeholder="Referencia de Pago" [(ngModel)]="referenciaPago" />
-      <button (click)="confirmarPagoBackend()" class="px-3 py-2 bg-indigo-700 text-white rounded">Confirmar Pago</button>
-      <button (click)="verHistorialBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Ver Historial</button>
+  <ng-container *ngIf="rol !== 'ADMIN'">
+    <hr class="my-8" />
+    <h3 class="text-2xl font-black text-slate-800 mb-4">Probar Backend (flujo rápido)</h3>
+    <div class="grid gap-3 mb-4">
+      <input class="border rounded px-3 py-2" placeholder="ID Estudiante" [(ngModel)]="nuevo.idEstudiante" />
+      <input class="border rounded px-3 py-2" placeholder="Descripción" [(ngModel)]="nuevo.descripcion" />
+      <button (click)="crearTramiteBackend()" [disabled]="creando" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">
+        {{ creando ? 'Creando…' : 'Crear Trámite' }}
+      </button>
+      <input class="border rounded px-3 py-2" placeholder="ID Trámite" [(ngModel)]="tramiteId" />
+      <div class="flex gap-2 flex-wrap">
+        <button (click)="validarBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Validar</button>
+        <input class="border rounded px-3 py-2" placeholder="ID Aseguradora" [(ngModel)]="idAseguradora" />
+        <button (click)="enviarAsegBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Enviar a Aseguradora</button>
+        <button (click)="aprobarBackend()" class="px-3 py-2 bg-green-700 text-white rounded">Registrar Aprobado</button>
+        <button (click)="solicitarCorreccionesBackend()" class="px-3 py-2 bg-amber-600 text-white rounded">Solicitar Correcciones</button>
+        <input class="border rounded px-3 py-2" placeholder="Referencia de Pago" [(ngModel)]="referenciaPago" />
+        <button (click)="confirmarPagoBackend()" class="px-3 py-2 bg-indigo-700 text-white rounded">Confirmar Pago</button>
+        <button (click)="verHistorialBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Ver Historial</button>
+      </div>
+      <div class="text-sm text-slate-700">{{ backendMsg }}</div>
     </div>
-    <div class="text-sm text-slate-700">{{ backendMsg }}</div>
-  </div>
 
-  <div class="grid gap-3">
-    <h4 class="text-xl font-bold">Subir Documento (backend)</h4>
-    <div class="flex gap-2 items-center flex-wrap">
-      <select class="border rounded px-3 py-2" [(ngModel)]="tipoDocumento">
-        <option value="IDENTIDAD">IDENTIDAD</option>
-        <option value="CERT_MATRICULA">CERT_MATRICULA</option>
-        <option value="OTROS">OTROS</option>
-      </select>
-      <input type="file" (change)="onArchivoChange($event)" />
-      <button (click)="subirDocumentoBackend()" class="px-3 py-2 bg-teal-700 text-white rounded">Subir</button>
+    <div class="grid gap-3">
+      <h4 class="text-xl font-bold">Subir Documento (backend)</h4>
+      <div class="flex gap-2 items-center flex-wrap">
+        <select class="border rounded px-3 py-2" [(ngModel)]="tipoDocumento">
+          <option value="IDENTIDAD">IDENTIDAD</option>
+          <option value="CERT_MATRICULA">CERT_MATRICULA</option>
+          <option value="OTROS">OTROS</option>
+        </select>
+        <input type="file" (change)="onArchivoChange($event)" />
+        <button (click)="subirDocumentoBackend()" class="px-3 py-2 bg-teal-700 text-white rounded">Subir</button>
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>

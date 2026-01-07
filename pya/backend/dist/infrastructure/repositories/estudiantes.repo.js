@@ -39,5 +39,8 @@ class EstudiantesRepository {
         const snapshot = await this.collection.get();
         return snapshot.docs.map(doc => ({ idEstudiante: doc.id, ...doc.data() }));
     }
+    async eliminar(idEstudiante) {
+        await this.collection.doc(idEstudiante).delete();
+    }
 }
 exports.EstudiantesRepository = EstudiantesRepository;

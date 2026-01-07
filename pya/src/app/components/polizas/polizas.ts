@@ -9,6 +9,7 @@ import { BUSINESS_CONFIG, ConfigHelper, MESSAGE_COLORS } from '../../config/busi
 
 @Component({
   selector: 'app-polizas',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './polizas.html',
   styleUrl: './polizas.css',

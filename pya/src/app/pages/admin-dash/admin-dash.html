@@ -57,25 +57,6 @@
       </div>
     </div>
 
-    <!-- Últimas auditorías -->
-    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6">
-      <h3 class="text-xl font-black text-slate-800 mb-4">🔍 Últimas Auditorías</h3>
-      <div *ngIf="datosAdmin.ultimasAuditorias.length === 0" class="text-center py-8 text-slate-400">
-        No hay auditorías registradas
-      </div>
-      <div *ngFor="let auditoria of datosAdmin.ultimasAuditorias" 
-           class="p-4 bg-slate-50 rounded-xl mb-3 hover:bg-slate-100 transition-all">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="font-bold text-slate-800">{{ auditoria.accion }}</p>
-            <p class="text-sm text-slate-500">Usuario: {{ auditoria.usuario }}</p>
-            <p class="text-xs text-slate-400">Trámite: {{ auditoria.idTramite || 'N/A' }}</p>
-          </div>
-          <p class="text-xs text-slate-400">{{ auditoria.fechaHora | date:'short' }}</p>
-        </div>
-      </div>
-    </div>
-
     <!-- Aseguradoras -->
     <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6">
       <h3 class="text-xl font-black text-slate-800 mb-4">🏢 Aseguradoras Activas</h3>
@@ -91,47 +72,11 @@
       </div>
     </div>
 
-    <div class="bg-slate-900 p-8 text-white flex items-center gap-4 rounded-[2.5rem]">
-      <div class="p-3 bg-indigo-500 rounded-2xl">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-xl font-bold">Parámetros del Motor de Seguros</h3>
-        <p class="text-slate-200 text-xs uppercase tracking-tighter">Modifica las reglas lógicas del servidor</p>
-      </div>
-    </div>
-
+    <!-- Gestión de Reglas de Negocio -->
     <div class="p-8 space-y-6 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100">
-      <div class="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
-        <div class="mb-4 md:mb-0">
-          <p class="text-slate-800 font-bold text-lg">Tiempo límite de activación</p>
-          <p class="text-slate-400 text-sm">Horas máximas para procesar un seguro nuevo.</p>
-        </div>
-        <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-inner border border-slate-200">
-          <input type="number" value="48" class="w-16 text-center font-black text-indigo-600 bg-transparent outline-none">
-          <span class="text-xs font-bold text-slate-400 uppercase pr-2">Horas</span>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
-        <div>
-          <p class="text-slate-800 font-bold text-lg">Validación automática de documentos</p>
-          <p class="text-slate-400 text-sm italic">Usa IA para verificar DNIs y firmas.</p>
-        </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" checked class="sr-only peer">
-          <div class="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
-        </label>
-      </div>
-
-      <div class="pt-4">
-        <button class="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] hover:bg-indigo-600 shadow-2xl shadow-indigo-200 active:scale-[0.98] transition-all tracking-[0.2em] text-sm uppercase">
-          Guardar Reglas de Negocio
-        </button>
-      </div>
+      <h3 class="text-xl font-black text-slate-800 mb-2">⚙️ Reglas de Negocio</h3>
+      <p class="text-slate-500 mb-4">Agrega, edita o elimina reglas activas del motor.</p>
+      <app-reglas-negocio></app-reglas-negocio>
     </div>
 
   </div>

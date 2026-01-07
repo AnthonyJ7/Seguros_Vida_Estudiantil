@@ -37,5 +37,8 @@ class ReglasRepository {
     async activar(idRegla) {
         return await this.actualizar(idRegla, { estado: true });
     }
+    async eliminar(idRegla) {
+        await this.collection.doc(idRegla).delete();
+    }
 }
 exports.ReglasRepository = ReglasRepository;

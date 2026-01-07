@@ -43,5 +43,8 @@ class ReglasService {
     async obtenerPorId(idRegla) {
         return await this.repo.obtenerPorId(idRegla);
     }
+    async eliminar(idRegla, actorUid) {
+        return await this.repo.eliminar(idRegla);
+    }
 }
 exports.ReglasService = ReglasService;

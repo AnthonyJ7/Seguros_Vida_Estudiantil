@@ -2,11 +2,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardService, DashboardAdminData } from '../../services/dashboard.service';
+import { ReglasNegocio } from '../../components/reglas-negocio/reglas-negocio';
 
 @Component({
   selector: 'app-admin-dash',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReglasNegocio],
   templateUrl: './admin-dash.html',
   styleUrl: './admin-dash.css',
 })

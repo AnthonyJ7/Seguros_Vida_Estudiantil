@@ -6,14 +6,24 @@ export const roleGuard: CanActivateFn = (route) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const required: string[] = (route.data && (route.data as any)['roles']) || [];
-  const role = auth.getRole();
+  
+  // Obtener el rol del localStorage directamente para mayor confiabilidad
+  let role = auth.getRole();
+  if (!role) {
+    role = localStorage.getItem('userRole') || localStorage.getItem('role') || '';
+  }
+  
   if (!role) {
     router.navigate(['/login']);
     return false;
   }
-  if (required.length && !required.includes(role)) {
+  
+  // Convertir a mayúsculas para comparación
+  const normalizedRole = role.toUpperCase();
+  
+  if (required.length && !required.includes(normalizedRole)) {
     // Redirige según rol actual
-    switch (role) {
+    switch (normalizedRole) {
       case 'ADMIN':
         router.navigate(['/admin-dash']);
         break;

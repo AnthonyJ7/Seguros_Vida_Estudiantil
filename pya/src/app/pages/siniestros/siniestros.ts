@@ -19,6 +19,7 @@ export class SiniestrosComponent implements OnInit {
   siniestros: any[] = [];
   loading = true;
   error = '';
+  rol: string = '';
   // Backend testing helpers
   creando = false;
   backendMsg = '';
@@ -43,6 +44,7 @@ export class SiniestrosComponent implements OnInit {
   async ngOnInit() {
     try {
       const rol = this.authService.getRole();
+      this.rol = rol || '';
       const uid = localStorage.getItem('uid') || '';
       let docs: any[] = [];
       if (rol === 'GESTOR' || rol === 'ADMIN') {

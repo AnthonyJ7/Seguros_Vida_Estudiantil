@@ -40,4 +40,8 @@ export class ReglasRepository {
   async activar(idRegla: string): Promise<ReglaNegocio> {
     return await this.actualizar(idRegla, { estado: true });
   }
+
+  async eliminar(idRegla: string): Promise<void> {
+    await this.collection.doc(idRegla).delete();
+  }
 }
