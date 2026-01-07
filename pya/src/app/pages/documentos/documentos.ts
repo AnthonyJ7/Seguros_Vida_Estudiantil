@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FirestoreService } from '../../services/firestore.service';
+import { DocumentosHttpService } from '../../services/documentos-http.service';
 
 @Component({
   selector: 'app-documentos',
@@ -14,13 +14,15 @@ export class DocumentosComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(private firestoreService: FirestoreService) {}
+  constructor(private documentosHttp: DocumentosHttpService) {}
 
   async ngOnInit() {
     try {
-      this.documentos = await this.firestoreService.getDocuments('documentos');
+      this.documentos = await new Promise<any[]>((resolve, reject) => {
+        this.documentosHttp.listar().subscribe({ next: resolve, error: reject });
+      });
     } catch (e: any) {
-      this.error = 'Error al cargar documentos';
+      this.error = 'Backend no disponible o error al cargar documentos';
     }
     this.loading = false;
   }

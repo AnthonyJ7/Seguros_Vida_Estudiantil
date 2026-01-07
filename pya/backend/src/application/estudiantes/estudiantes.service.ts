@@ -62,4 +62,18 @@ export class EstudiantesService {
   async listar(): Promise<Estudiante[]> {
     return await this.repo.listar();
   }
+
+  async eliminar(idEstudiante: string, actorUid: string): Promise<void> {
+    const estudiante = await this.repo.obtenerPorId(idEstudiante);
+    
+    await this.repo.eliminar(idEstudiante);
+    
+    await this.auditoriaRepo.registrar({
+      accion: 'ELIMINAR_ESTUDIANTE',
+      usuario: actorUid,
+      entidad: 'estudiantes',
+      estadoAnterior: estudiante,
+      detalles: `Estudiante ${estudiante?.nombreCompleto} (${estudiante?.cedula}) eliminado`
+    });
+  }
 }

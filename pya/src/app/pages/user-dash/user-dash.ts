@@ -1,9 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { DashboardService, DashboardClienteData, DashboardGestorData } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
+import { TramitesHttpService } from '../../services/tramites-http.service';
 
 @Component({
   selector: 'app-user-dash',
@@ -21,7 +22,9 @@ export class UserDashComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     public authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+    private tramitesHttp: TramitesHttpService
   ) {}
 
   async ngOnInit() {
@@ -49,5 +52,36 @@ export class UserDashComponent implements OnInit {
     }
     this.cargando = false;
     this.cdr.detectChanges();
+  }
+
+  async validarTramite(idTramite: string) {
+    if (!confirm('¿Aprobar este trámite y cambiar su estado a VALIDADO?')) return;
+    
+    try {
+      await this.tramitesHttp.validarTramite(idTramite).toPromise();
+      alert('Trámite validado correctamente');
+      await this.cargarDatos(); // Recargar
+    } catch (error: any) {
+      console.error('Error validando trámite:', error);
+      alert('Error validando trámite: ' + (error?.error?.error || error?.message || 'Error desconocido'));
+    }
+  }
+
+  async rechazarTramite(idTramite: string) {
+    const motivo = prompt('Ingresa el motivo del rechazo:');
+    if (!motivo) return;
+    
+    try {
+      await this.tramitesHttp.rechazarTramite(idTramite, motivo).toPromise();
+      alert('Trámite rechazado correctamente');
+      await this.cargarDatos(); // Recargar
+    } catch (error: any) {
+      console.error('Error rechazando trámite:', error);
+      alert('Error rechazando trámite: ' + (error?.error?.error || error?.message || 'Error desconocido'));
+    }
+  }
+
+  navegarEstudiantes() {
+    this.router.navigate(['/estudiantes']);
   }
 }

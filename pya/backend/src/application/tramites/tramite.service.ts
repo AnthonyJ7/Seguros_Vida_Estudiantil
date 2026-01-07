@@ -341,10 +341,13 @@ export class TramiteService {
     };
   }
 
-  async listarTramites(params: { rol?: string; uid: string }) {
-    if (params.rol === 'gestor' || params.rol === 'admin') {
+  async listarTramites(params: { rol?: string; uid: string; estudiante?: string }) {
+    const rolUpper = (params.rol || '').toUpperCase();
+    if (rolUpper === 'GESTOR' || rolUpper === 'ADMIN') {
+      // GESTOR y ADMIN ven todos
       return this.repo.listarTodos();
     }
+    // CLIENTE solo ve sus propios (por uid creador)
     return this.repo.listarPorCreador(params.uid);
   }
 

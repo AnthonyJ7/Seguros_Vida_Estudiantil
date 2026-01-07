@@ -9,6 +9,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Simple request logger for debugging local issues
+app.use((req, res, next) => {
+  const start = Date.now();
+  const authPresent = Boolean(req.headers.authorization);
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    console.log(`[req] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms) auth:${authPresent ? 'yes' : 'no'}`);
+  });
+  next();
+});
+
 app.use('/api', router);
 
 app.get('/health', (_, res) => {

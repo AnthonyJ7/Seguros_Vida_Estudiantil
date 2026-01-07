@@ -40,6 +40,16 @@ const upload = multer({
   }
 });
 
+// Listar documentos (GET /api/documentos)
+documentosRouter.get('/', verifyToken, async (req: RequestWithUser, res: Response) => {
+  try {
+    // Retornar array vacío por ahora (se filtra en frontend si es cliente)
+    res.json([]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'No se pudieron listar documentos' });
+  }
+});
+
 // Subir documento (caso de uso: Adjuntar Documentos)
 documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (req: RequestWithUser, res: Response) => {
   try {
