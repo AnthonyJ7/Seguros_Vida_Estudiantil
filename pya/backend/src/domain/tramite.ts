@@ -125,12 +125,13 @@ export interface Tramite {
 }
 
 // Transiciones válidas de estado (máquina de estados)
+// Flujo simplificado para gestor: EN_VALIDACION → VALIDADO → APROBADO/RECHAZADO
 export const TRANSICIONES_VALIDAS: Record<EstadoCaso, EstadoCaso[]> = {
   [EstadoCaso.BORRADOR]: [EstadoCaso.REGISTRADO],
   [EstadoCaso.REGISTRADO]: [EstadoCaso.EN_VALIDACION],
-  [EstadoCaso.EN_VALIDACION]: [EstadoCaso.OBSERVADO, EstadoCaso.VALIDADO],
+  [EstadoCaso.EN_VALIDACION]: [EstadoCaso.OBSERVADO, EstadoCaso.VALIDADO, EstadoCaso.APROBADO, EstadoCaso.RECHAZADO, EstadoCaso.CORRECCIONES_PENDIENTES],
   [EstadoCaso.OBSERVADO]: [EstadoCaso.EN_VALIDACION, EstadoCaso.REGISTRADO],
-  [EstadoCaso.VALIDADO]: [EstadoCaso.ENVIADO_ASEGURADORA],
+  [EstadoCaso.VALIDADO]: [EstadoCaso.ENVIADO_ASEGURADORA, EstadoCaso.APROBADO, EstadoCaso.RECHAZADO, EstadoCaso.CORRECCIONES_PENDIENTES],
   [EstadoCaso.ENVIADO_ASEGURADORA]: [EstadoCaso.CON_RESPUESTA],
   [EstadoCaso.CON_RESPUESTA]: [EstadoCaso.APROBADO, EstadoCaso.RECHAZADO, EstadoCaso.CON_OBSERVACIONES],
   [EstadoCaso.APROBADO]: [EstadoCaso.PAGO_PENDIENTE],

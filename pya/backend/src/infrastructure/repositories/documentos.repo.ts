@@ -59,19 +59,39 @@ export class DocumentosRepository {
   }
 
   // Método para subir archivo a Storage (acepta ruta local del archivo temporal)
+  // NOTA: Firebase Storage es un servicio de pago. Por ahora usamos URLs mock.
+  // Para activar Storage real en el futuro:
+  // 1. Habilitar Cloud Storage en Firebase Console
+  // 2. Descomentar el código con storage.googleapis.com
+  // 3. Asegurar que FIREBASE_STORAGE_BUCKET esté configurado en .env
   async subirArchivo(localFilePath: string, tramiteId: string): Promise<string> {
-    const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
-    const bucket = this.getBucket();
-    const fileUpload = bucket.file(fileName);
-
-    await bucket.upload(localFilePath, {
-      destination: fileName,
-      metadata: {
-        cacheControl: 'public, max-age=31536000'
-      }
-    });
-
-    await fileUpload.makePublic();
-    return fileUpload.publicUrl();
+    try {
+      const fs = require('fs');
+      const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
+      
+      // MOCK: Generar URL simulada (sin Storage real)
+      const mockUrl = `https://storage.mock.local/${fileName}`;
+      console.log(`[documentos.repo] Mock URL: ${mockUrl}`);
+      
+      // TODO: Reemplazar con código real cuando Storage esté habilitado:
+      /*
+      const bucket = this.getBucket();
+      const fileUpload = bucket.file(fileName);
+      await fileUpload.save(fs.readFileSync(localFilePath), {
+        metadata: {
+          cacheControl: 'public, max-age=31536000'
+        }
+      });
+      await fileUpload.makePublic();
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      console.log(`[documentos.repo] Archivo subido: ${publicUrl}`);
+      return publicUrl;
+      */
+      
+      return mockUrl;
+    } catch (error: any) {
+      console.error('[documentos.repo] Error subiendo archivo:', error);
+      throw new Error(`Error subiendo archivo: ${error.message}`);
+    }
   }
 }

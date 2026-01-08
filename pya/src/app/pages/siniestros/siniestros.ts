@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// import { FirestoreService } from '../../services/firestore.service';
 import { AuthService } from '../../services/auth.service';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +18,11 @@ export class SiniestrosComponent implements OnInit {
   siniestros: any[] = [];
   loading = true;
   error = '';
-  // Backend testing helpers
+  userRole = '';
+  filtroEstado = '';
+  filtroTipo = '';
+
+  // Backend testing helpers (solo mostrar para admin)
   creando = false;
   backendMsg = '';
   nuevo = {
@@ -32,7 +35,6 @@ export class SiniestrosComponent implements OnInit {
   referenciaPago = '';
 
   constructor(
-    // private firestoreService: FirestoreService,
     private authService: AuthService,
     private location: Location,
     private tramitesHttp: TramitesHttpService,
@@ -42,15 +44,15 @@ export class SiniestrosComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      const rol = this.authService.getRole();
+      this.userRole = this.authService.getRole();
       const uid = localStorage.getItem('uid') || '';
       let docs: any[] = [];
-      if (rol === 'GESTOR' || rol === 'ADMIN') {
+      
+      if (this.userRole === 'GESTOR' || this.userRole === 'ADMIN') {
         docs = await new Promise<any[]>((resolve, reject) => {
           this.tramitesHttp.listar().subscribe({ next: resolve, error: reject });
         });
       } else {
-        // Obtener estudiante desde backend y listar por estudiante
         const allEst = await new Promise<any[]>((resolve, reject) => {
           this.estudiantesHttp.listar().subscribe({ next: resolve, error: reject });
         });
@@ -62,7 +64,7 @@ export class SiniestrosComponent implements OnInit {
             })
           : [];
       }
-      // Convertir fechas si es necesario
+      
       this.siniestros = docs.map(doc => ({
         ...doc,
         fechaRegistro: (() => {
@@ -70,18 +72,54 @@ export class SiniestrosComponent implements OnInit {
           const parsed = new Date(doc.fechaRegistro);
           return isNaN(parsed.getTime()) ? new Date() : parsed;
         })()
-      }));
+      })).sort((a, b) => {
+        const dateA = new Date(a.fechaRegistro).getTime();
+        const dateB = new Date(b.fechaRegistro).getTime();
+        return dateB - dateA;
+      });
     } catch (e: any) {
-      this.error = 'Backend no disponible o error al cargar siniestros';
+      this.error = 'Backend no disponible o error al cargar trámites';
     }
     this.loading = false;
+  }
+
+  getTramitesFiltrados(): any[] {
+    return this.siniestros.filter(t => {
+      const matchEstado = !this.filtroEstado || t.estadoCaso === this.filtroEstado;
+      const matchTipo = !this.filtroTipo || t.tipoTramite === this.filtroTipo;
+      return matchEstado && matchTipo;
+    });
+  }
+
+  getEstadoColor(estado: string): string {
+    const colores: Record<string, string> = {
+      'en_validacion': 'bg-amber-100 text-amber-800',
+      'validado': 'bg-blue-100 text-blue-800',
+      'aprobado': 'bg-emerald-100 text-emerald-800',
+      'rechazado': 'bg-red-100 text-red-800',
+      'correcciones_pendientes': 'bg-orange-100 text-orange-800',
+      'cerrado': 'bg-slate-100 text-slate-800'
+    };
+    return colores[estado] || 'bg-slate-100 text-slate-800';
+  }
+
+  getTipoLabel(tipo: string): string {
+    const labels: Record<string, string> = {
+      'SEGURO_VIDA': 'Seguro de Vida',
+      'REEMBOLSO_MEDICO': 'Reembolso Médico',
+      'ACCIDENTE': 'Accidente',
+      'ENFERMEDAD': 'Enfermedad',
+      'FALLECIMIENTO': 'Fallecimiento',
+      'SINIESTRO': 'Siniestro'
+    };
+    return labels[tipo] || tipo;
   }
 
   goBack() {
     this.location.back();
   }
 
-  // ===== Backend flow testers =====
+  // ===== Backend flow testers (solo para admin) =====
   crearTramiteBackend() {
     this.backendMsg = '';
     this.creando = true;

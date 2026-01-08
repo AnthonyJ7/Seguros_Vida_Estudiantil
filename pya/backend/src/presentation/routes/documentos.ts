@@ -52,24 +52,23 @@ documentosRouter.get('/', verifyToken, async (req: RequestWithUser, res: Respons
 
 // Subir documento (caso de uso: Adjuntar Documentos)
 documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (req: RequestWithUser, res: Response) => {
+  let tempFilePath: string | null = null;
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió archivo' });
     }
 
+    tempFilePath = req.file.path;
     const { tramiteId, tipo, descripcion } = req.body;
     
     if (!tramiteId || !tipo) {
-      // Eliminar archivo temporal
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'tramiteId y tipo son requeridos' });
     }
 
+    console.log(`[documentos] Subiendo archivo: ${req.file.originalname} para trámite ${tramiteId}`);
+
     // Subir a Firebase Storage
     const urlArchivo = await repo.subirArchivo(req.file.path, tramiteId);
-    
-    // Eliminar archivo temporal
-    fs.unlinkSync(req.file.path);
 
     // Crear registro en Firestore
     const documento = await repo.crear({
@@ -82,13 +81,20 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
       validado: false
     });
 
+    console.log(`[documentos] Documento registrado: ${documento.idDocumento}`);
     res.status(201).json(documento);
   } catch (err: any) {
-    // Limpiar archivo temporal en caso de error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    console.error('[documentos] Error en upload:', err);
+    res.status(500).json({ error: err.message || 'Error al subir documento' });
+  } finally {
+    // Limpiar archivo temporal en cualquier caso
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (e) {
+        console.warn('[documentos] No se pudo limpiar archivo temporal:', tempFilePath);
+      }
     }
-    res.status(500).json({ error: err.message });
   }
 });
 

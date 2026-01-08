@@ -12,9 +12,13 @@ export class TramitesRepository {
 
   async obtenerPorId(id: string): Promise<Tramite | null> {
     const doc = await this.collection.doc(id).get();
-    if (!doc.exists) return null;
-    
-    return { id: doc.id, ...doc.data() } as Tramite;
+    if (doc.exists) {
+      return { id: doc.id, ...doc.data() } as Tramite;
+    }
+
+    // Compatibilidad: si recibimos un codigoUnico en lugar del ID de documento
+    const byCodigo = await this.obtenerPorCodigoUnico(id);
+    return byCodigo;
   }
 
   async obtenerPorCodigoUnico(codigoUnico: string): Promise<Tramite | null> {
