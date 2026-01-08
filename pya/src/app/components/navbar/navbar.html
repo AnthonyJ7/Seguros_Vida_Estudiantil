@@ -23,9 +23,9 @@
       PYA <span class="opacity-80">SEGUROS</span>
     </span>
 
-    <!-- Badge de notificaciones -->
+    <!-- Badge de notificaciones (oculto para ADMIN) -->
     <button 
-      *ngIf="isOpen && notificacionesNoLeidas > 0"
+      *ngIf="isOpen && notificacionesNoLeidas > 0 && userRole !== 'ADMIN'"
       (click)="toggleNotificaciones()"
       class="ml-auto relative p-2 hover:bg-white/20 rounded-lg transition-all">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,7 +174,7 @@
         </a>
       </div>
 
-      <!-- ADMIN: Control total -->
+      <!-- ADMIN: Control total (sin notificaciones) -->
       <div *ngIf="userRole === 'ADMIN'" class="space-y-2">
         <a 
           *ngIf="canAccess('dashboard')"
@@ -204,15 +204,6 @@
         </a>
 
         <a 
-          *ngIf="canAccess('polizas')"
-          routerLink="/polizas" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Pólizas</span>
-        </a>
-
-        <a 
           *ngIf="canAccess('siniestros')"
           routerLink="/siniestros" 
           routerLinkActive="opacity-100 scale-105" 
@@ -230,23 +221,7 @@
           <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Auditoría</span>
         </a>
 
-        <a 
-          *ngIf="canAccess('configuracion')"
-          routerLink="/configuracion" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">⚙️</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Configuración</span>
-        </a>
-
-        <a 
-          routerLink="/notificaciones" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group relative">
-          <span class="text-2xl min-w-[32px]">🔔</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Notificaciones</span>
-          <span *ngIf="notificacionesNoLeidas > 0" class="absolute top-2 left-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">{{notificacionesNoLeidas}}</span>
-        </a>
+        <!-- Notificaciones removidas para ADMIN -->
       </div>
 
     </nav>
@@ -272,8 +247,8 @@
   </div>
 </aside>
 
-<!-- Panel flotante de notificaciones -->
-<div *ngIf="mostrarNotificaciones" class="fixed inset-0 z-50 flex items-start justify-end pt-20 pr-6">
+<!-- Panel flotante de notificaciones (no ADMIN) -->
+<div *ngIf="userRole !== 'ADMIN' && mostrarNotificaciones" class="fixed inset-0 z-50 flex items-start justify-end pt-20 pr-6">
   <div class="bg-white rounded-2xl shadow-2xl w-96 max-h-[600px] overflow-hidden border border-slate-200">
     <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
       <h3 class="font-black text-lg">🔔 Notificaciones</h3>

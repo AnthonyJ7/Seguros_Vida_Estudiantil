@@ -1,12 +1,23 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocumentosRepository = void 0;
 // AdaptadorDocumentoFirebase
 const firebase_1 = require("../../config/firebase");
+const firebase_admin_1 = __importDefault(require("firebase-admin"));
 class DocumentosRepository {
     constructor() {
         this.collection = firebase_1.db.collection('documentos');
-        this.bucket = firebase_1.storage.bucket();
+    }
+    getBucket() {
+        const configured = firebase_admin_1.default.app().options.storageBucket;
+        const bucketName = process.env.FIREBASE_STORAGE_BUCKET || configured;
+        if (!bucketName) {
+            throw new Error('Firebase Storage bucket no configurado. Defina FIREBASE_STORAGE_BUCKET o storageBucket en firebase.ts');
+        }
+        return firebase_1.storage.bucket(bucketName);
     }
     async obtenerPorId(idDocumento) {
         const doc = await this.collection.doc(idDocumento).get();
@@ -38,7 +49,7 @@ class DocumentosRepository {
         if (doc?.urlArchivo) {
             // Eliminar archivo de Storage
             try {
-                const file = this.bucket.file(doc.urlArchivo);
+                const file = this.getBucket().file(doc.urlArchivo);
                 await file.delete();
             }
             catch (error) {
@@ -50,8 +61,9 @@ class DocumentosRepository {
     // Método para subir archivo a Storage (acepta ruta local del archivo temporal)
     async subirArchivo(localFilePath, tramiteId) {
         const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
-        const fileUpload = this.bucket.file(fileName);
-        await this.bucket.upload(localFilePath, {
+        const bucket = this.getBucket();
+        const fileUpload = bucket.file(fileName);
+        await bucket.upload(localFilePath, {
             destination: fileName,
             metadata: {
                 cacheControl: 'public, max-age=31536000'

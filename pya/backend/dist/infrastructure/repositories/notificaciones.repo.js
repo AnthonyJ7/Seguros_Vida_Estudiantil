@@ -34,18 +34,34 @@ class NotificacionesRepository {
     async obtenerPorDestinatario(destinatario, limite = 50) {
         const snapshot = await this.collection
             .where('destinatario', '==', destinatario)
-            .orderBy('fechaEnvio', 'desc')
             .limit(limite)
             .get();
-        return snapshot.docs.map(doc => ({ idNotificacion: doc.id, ...doc.data() }));
+        const notificaciones = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                idNotificacion: doc.id,
+                ...data,
+                fechaEnvio: data.fechaEnvio?.toDate ? data.fechaEnvio.toDate() : data.fechaEnvio
+            };
+        });
+        // Ordenar en memoria en lugar de en Firestore
+        return notificaciones.sort((a, b) => new Date(b.fechaEnvio).getTime() - new Date(a.fechaEnvio).getTime());
     }
     async obtenerNoLeidas(destinatario) {
         const snapshot = await this.collection
             .where('destinatario', '==', destinatario)
             .where('leida', '==', false)
-            .orderBy('fechaEnvio', 'desc')
             .get();
-        return snapshot.docs.map(doc => ({ idNotificacion: doc.id, ...doc.data() }));
+        const notificaciones = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                idNotificacion: doc.id,
+                ...data,
+                fechaEnvio: data.fechaEnvio?.toDate ? data.fechaEnvio.toDate() : data.fechaEnvio
+            };
+        });
+        // Ordenar en memoria en lugar de en Firestore
+        return notificaciones.sort((a, b) => new Date(b.fechaEnvio).getTime() - new Date(a.fechaEnvio).getTime());
     }
 }
 exports.NotificacionesRepository = NotificacionesRepository;

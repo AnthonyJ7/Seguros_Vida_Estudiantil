@@ -10,7 +10,9 @@ import { firebaseConfig } from '../firebase.config';
 })
 export class AuthService {
   // 1. Creamos un "sujeto" que guarda el estado actual del rol
-  private roleSubject = new BehaviorSubject<string | null>(localStorage.getItem('role'));
+  private roleSubject = new BehaviorSubject<string | null>(
+    localStorage.getItem('userRole') || localStorage.getItem('role')
+  );
   private userSubject = new BehaviorSubject<User | null>(null);
   private appInit = false;
 
@@ -20,8 +22,8 @@ export class AuthService {
   // pero mantendremos getRole() para tu compatibilidad actual
   login(role: string) {
     const cleanRole = role.toUpperCase(); // Aseguramos mayúsculas
-    localStorage.setItem('role', cleanRole);
     localStorage.setItem('userRole', cleanRole);
+    localStorage.setItem('role', cleanRole); // Retrocompatibilidad
     
     // 3. Notificamos a toda la app que el rol cambió
     this.roleSubject.next(cleanRole);

@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstudiantesHttpService } from '../../services/estudiantes-http.service';
+import { AuthService } from '../../services/auth.service';
+import { interval, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-estudiantes',
@@ -10,11 +13,14 @@ import { EstudiantesHttpService } from '../../services/estudiantes-http.service'
   templateUrl: './estudiantes.html',
   styleUrl: './estudiantes.css'
 })
-export class EstudiantesPage implements OnInit {
+export class EstudiantesPage implements OnInit, OnDestroy {
   estudiantes: any[] = [];
   cargandoLista = false;
   guardando = false;
   actualizandoId: string | null = null;
+  autoRefresh = true;
+  ultimaActualizacion: Date | null = null;
+  rol: string = '';
 
   cedulaElegibilidad = '';
   resultadoElegibilidad = '';
@@ -31,79 +37,177 @@ export class EstudiantesPage implements OnInit {
   estadoNuevo: Record<string, string> = {};
   borrandoId: string | null = null;
 
-  constructor(private estudiantesHttp: EstudiantesHttpService) {}
+  private refreshSubscription?: Subscription;
 
-  async ngOnInit() {
-    await this.cargar();
+  constructor(
+    private estudiantesHttp: EstudiantesHttpService,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.rol = this.authService.getRole() || '';
+    this.cargarDatos();
   }
 
-  async cargar() {
-    this.cargandoLista = true;
-    this.estudiantes = (await this.estudiantesHttp.listar().toPromise().catch(() => [])) || [];
-    this.cargandoLista = false;
+  ngOnDestroy() {
+    this.detenerAutoRefresh();
   }
 
-  async verificarElegibilidad() {
-    if (!this.cedulaElegibilidad.trim()) return;
-    const resp = await this.estudiantesHttp.verificarElegibilidad(this.cedulaElegibilidad.trim()).toPromise();
-    if (resp?.elegible) {
-      this.resultadoElegibilidad = `Elegible: ${resp.estudiante?.nombreCompleto || ''} (${resp.estudiante?.estadoAcademico})`;
-    } else {
-      this.resultadoElegibilidad = `No elegible: ${resp?.razon || 'Sin razón'}`;
+  cargarDatos() {
+    // Primero cargamos los datos
+    this.estudiantesHttp.listar().subscribe({
+      next: (data) => {
+        this.estudiantes = data || [];
+        this.ultimaActualizacion = new Date();
+        this.cargandoLista = false;
+        
+        // Una vez cargados, iniciamos el auto-refresh
+        if (this.autoRefresh) {
+          this.iniciarAutoRefresh();
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando estudiantes:', error);
+        this.estudiantes = [];
+        this.cargandoLista = false;
+      }
+    });
+  }
+
+  iniciarAutoRefresh() {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+    }
+    
+    // Actualizar cada 10 segundos
+    this.refreshSubscription = interval(10000)
+      .pipe(
+        switchMap(() => this.estudiantesHttp.listar())
+      )
+      .subscribe({
+        next: (data) => {
+          if (this.autoRefresh) {
+            this.estudiantes = data || [];
+            this.ultimaActualizacion = new Date();
+          }
+        },
+        error: (error) => {
+          console.error('Error en auto-refresh:', error);
+        }
+      });
+  }
+
+  detenerAutoRefresh() {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
     }
   }
 
-  async crear() {
+  toggleAutoRefresh() {
+    this.autoRefresh = !this.autoRefresh;
+    if (!this.autoRefresh) {
+      this.detenerAutoRefresh();
+    } else {
+      this.iniciarAutoRefresh();
+    }
+  }
+
+  cargar() {
+    this.cargandoLista = true;
+    this.estudiantesHttp.listar().subscribe({
+      next: (data) => {
+        this.estudiantes = data || [];
+        this.ultimaActualizacion = new Date();
+        this.cargandoLista = false;
+      },
+      error: (error) => {
+        console.error('Error cargando estudiantes:', error);
+        this.estudiantes = [];
+        this.cargandoLista = false;
+      }
+    });
+  }
+
+  verificarElegibilidad() {
+    if (!this.cedulaElegibilidad.trim()) return;
+    this.estudiantesHttp.verificarElegibilidad(this.cedulaElegibilidad.trim()).subscribe({
+      next: (resp) => {
+        if (resp?.elegible) {
+          this.resultadoElegibilidad = `Elegible: ${resp.estudiante?.nombreCompleto || ''} (${resp.estudiante?.estadoAcademico})`;
+        } else {
+          this.resultadoElegibilidad = `No elegible: ${resp?.razon || 'Sin razón'}`;
+        }
+      },
+      error: (error) => {
+        console.error('Error verificando elegibilidad:', error);
+        this.resultadoElegibilidad = 'Error verificando elegibilidad';
+      }
+    });
+  }
+
+  crear() {
     if (!this.nuevoEstudiante.cedula || !this.nuevoEstudiante.nombreCompleto) {
       alert('Cédula y nombre son requeridos');
       return;
     }
     this.guardando = true;
-    try {
-      await this.estudiantesHttp.crear(this.nuevoEstudiante).toPromise();
-      alert('Estudiante creado');
-      this.nuevoEstudiante = {
-        uidUsuario: '',
-        cedula: '',
-        nombreCompleto: '',
-        periodoAcademico: '',
-        estadoAcademico: 'activo',
-        estadoCobertura: 'vigente'
-      };
-      await this.cargar();
-    } catch (e: any) {
-      alert('Error creando estudiante: ' + (e?.error?.error || e?.message));
-    }
-    this.guardando = false;
+    this.estudiantesHttp.crear(this.nuevoEstudiante).subscribe({
+      next: () => {
+        alert('Estudiante creado');
+        this.nuevoEstudiante = {
+          uidUsuario: '',
+          cedula: '',
+          nombreCompleto: '',
+          periodoAcademico: '',
+          estadoAcademico: 'activo',
+          estadoCobertura: 'vigente'
+        };
+        this.guardando = false;
+        this.cargar();
+      },
+      error: (e: any) => {
+        console.error('Error creando estudiante:', e);
+        alert('Error creando estudiante: ' + (e?.error?.error || e?.message));
+        this.guardando = false;
+      }
+    });
   }
 
-  async actualizarEstado(est: any) {
+  actualizarEstado(est: any) {
     const nuevo = this.estadoNuevo[est.idEstudiante || est.id];
     if (!nuevo) return;
     this.actualizandoId = est.idEstudiante || est.id || null;
     if (!this.actualizandoId) return;
-    try {
-      await this.estudiantesHttp.actualizarEstado(this.actualizandoId, nuevo).toPromise();
-      alert('Estado actualizado');
-      await this.cargar();
-    } catch (e: any) {
-      alert('Error actualizando estado: ' + (e?.error?.error || e?.message));
-    }
-    this.actualizandoId = null;
+    this.estudiantesHttp.actualizarEstado(this.actualizandoId, nuevo).subscribe({
+      next: () => {
+        alert('Estado actualizado');
+        this.actualizandoId = null;
+        this.cargar();
+      },
+      error: (e: any) => {
+        console.error('Error actualizando estado:', e);
+        alert('Error actualizando estado: ' + (e?.error?.error || e?.message));
+        this.actualizandoId = null;
+      }
+    });
   }
 
-  async eliminar(est: any) {
+  eliminar(est: any) {
     const id = est.idEstudiante || est.id;
     if (!id) return;
     if (!confirm(`¿Eliminar estudiante ${est.nombreCompleto}?`)) return;
     this.borrandoId = id;
-    try {
-      await this.estudiantesHttp.eliminar(id).toPromise();
-      alert('Estudiante eliminado');
-      await this.cargar();
-    } catch (e: any) {
-      alert('Error eliminando estudiante: ' + (e?.error?.error || e?.message));
-    }
-    this.borrandoId = null;
+    this.estudiantesHttp.eliminar(id).subscribe({
+      next: () => {
+        alert('Estudiante eliminado');
+        this.borrandoId = null;
+        this.cargar();
+      },
+      error: (e: any) => {
+        console.error('Error eliminando estudiante:', e);
+        alert('Error eliminando estudiante: ' + (e?.error?.error || e?.message));
+        this.borrandoId = null;
+      }
+    });
   }
 }

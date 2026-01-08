@@ -50,4 +50,8 @@ export class ReglasService {
   async obtenerPorId(idRegla: string): Promise<ReglaNegocio | null> {
     return await this.repo.obtenerPorId(idRegla);
   }
+
+  async eliminar(idRegla: string, actorUid: string): Promise<void> {
+    return await this.repo.eliminar(idRegla);
+  }
 }

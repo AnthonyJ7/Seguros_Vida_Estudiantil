@@ -49,7 +49,7 @@ estudiantesRouter.get('/:id', auth_1.verifyToken, async (req, res) => {
     }
 });
 // Listar estudiantes
-estudiantesRouter.get('/', auth_1.verifyToken, (0, roles_1.requireRole)(['gestor', 'admin']), async (req, res) => {
+estudiantesRouter.get('/', auth_1.verifyToken, (0, roles_1.requireRole)(['ADMIN', 'GESTOR']), async (req, res) => {
     try {
         const estudiantes = await service.listar();
         res.json(estudiantes);
@@ -59,7 +59,7 @@ estudiantesRouter.get('/', auth_1.verifyToken, (0, roles_1.requireRole)(['gestor
     }
 });
 // Crear estudiante
-estudiantesRouter.post('/', auth_1.verifyToken, (0, roles_1.requireRole)(['gestor', 'admin']), async (req, res) => {
+estudiantesRouter.post('/', auth_1.verifyToken, (0, roles_1.requireRole)(['ADMIN', 'GESTOR']), async (req, res) => {
     try {
         const uid = req.user?.uid;
         const estudiante = await service.crear(req.body, uid);
@@ -70,7 +70,7 @@ estudiantesRouter.post('/', auth_1.verifyToken, (0, roles_1.requireRole)(['gesto
     }
 });
 // Actualizar estado académico
-estudiantesRouter.patch('/:id/estado', auth_1.verifyToken, (0, roles_1.requireRole)(['gestor', 'admin']), async (req, res) => {
+estudiantesRouter.patch('/:id/estado', auth_1.verifyToken, (0, roles_1.requireRole)(['ADMIN', 'GESTOR']), async (req, res) => {
     try {
         const uid = req.user?.uid;
         const { estadoAcademico } = req.body;
@@ -79,6 +79,17 @@ estudiantesRouter.patch('/:id/estado', auth_1.verifyToken, (0, roles_1.requireRo
         }
         const estudiante = await service.actualizarEstadoAcademico(req.params.id, estadoAcademico, uid);
         res.json(estudiante);
+    }
+    catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+// Eliminar estudiante
+estudiantesRouter.delete('/:id', auth_1.verifyToken, (0, roles_1.requireRole)(['gestor', 'admin']), async (req, res) => {
+    try {
+        const uid = req.user?.uid;
+        await service.eliminar(req.params.id, uid);
+        res.json({ mensaje: 'Estudiante eliminado correctamente' });
     }
     catch (err) {
         res.status(400).json({ error: err.message });
