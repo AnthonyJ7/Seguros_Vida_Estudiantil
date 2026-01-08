@@ -1,69 +1,130 @@
-<div class="max-w-3xl mx-auto mt-12 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
-  <!-- Botón para volver atrás -->
-  <div class="mb-6">
-    <button (click)="goBack()" class="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 rounded-xl font-bold hover:bg-slate-300 transition-all">
-      <span class="material-icons">arrow_back</span> Volver
-    </button>
+<div class="max-w-7xl mx-auto mt-12 p-8 space-y-8">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <button (click)="goBack()" class="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 rounded-xl font-bold hover:bg-slate-300 transition-all mb-4">
+        ← Volver
+      </button>
+      <h2 class="text-4xl font-black text-slate-800">Trámites Registrados</h2>
+      <p class="text-slate-500 mt-2">Seguimiento de todos los siniestros y solicitudes</p>
+    </div>
   </div>
-  <h2 class="text-3xl font-black text-slate-800 mb-8">Siniestros Registrados</h2>
-  <div *ngIf="loading" class="text-slate-500">Cargando siniestros...</div>
-  <div *ngIf="error" class="text-red-600 font-bold">{{ error }}</div>
-  <div *ngIf="!loading && siniestros.length === 0" class="text-slate-500">No hay siniestros registrados.</div>
-  <table *ngIf="!loading && siniestros.length > 0" class="min-w-full mt-4">
-    <thead>
-      <tr>
-        <th class="text-left py-2 px-4">ID</th>
-        <th class="text-left py-2 px-4">Tipo</th>
-        <th class="text-left py-2 px-4">Descripción</th>
-        <th class="text-left py-2 px-4">Fecha</th>
-        <th class="text-left py-2 px-4">Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let s of siniestros">
-        <td class="py-2 px-4">{{ s.idAuto || s.id }}</td>
-        <td class="py-2 px-4">{{ s.tipo }}</td>
-        <td class="py-2 px-4">{{ s.descripcion }}</td>
-        <td class="py-2 px-4">{{ s.fechaRegistro | date:'short' }}</td>
-        <td class="py-2 px-4">{{ s.estadoCaso }}</td>
-      </tr>
-    </tbody>
-  </table>
 
-  <ng-container *ngIf="rol !== 'ADMIN'">
-    <hr class="my-8" />
-    <h3 class="text-2xl font-black text-slate-800 mb-4">Probar Backend (flujo rápido)</h3>
-    <div class="grid gap-3 mb-4">
-      <input class="border rounded px-3 py-2" placeholder="ID Estudiante" [(ngModel)]="nuevo.idEstudiante" />
-      <input class="border rounded px-3 py-2" placeholder="Descripción" [(ngModel)]="nuevo.descripcion" />
-      <button (click)="crearTramiteBackend()" [disabled]="creando" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">
+  <!-- Cargando -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    <p class="mt-4 text-slate-500">Cargando trámites...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 font-bold">
+    {{ error }}
+  </div>
+
+  <!-- Sin resultados -->
+  <div *ngIf="!loading && siniestros.length === 0 && !error" class="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
+    <p class="text-slate-500 text-lg">No hay trámites registrados.</p>
+  </div>
+
+  <!-- Filtros -->
+  <div *ngIf="!loading && siniestros.length > 0" class="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 space-y-4">
+    <h3 class="text-lg font-bold text-slate-800">Filtros</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Estado</label>
+        <select [(ngModel)]="filtroEstado" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none">
+          <option value="">Todos los estados</option>
+          <option value="en_validacion">En Validación</option>
+          <option value="validado">Validado</option>
+          <option value="aprobado">Aprobado</option>
+          <option value="rechazado">Rechazado</option>
+          <option value="correcciones_pendientes">Correcciones Pendientes</option>
+          <option value="cerrado">Cerrado</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Tipo de Trámite</label>
+        <select [(ngModel)]="filtroTipo" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none">
+          <option value="">Todos los tipos</option>
+          <option value="SEGURO_VIDA">Seguro de Vida</option>
+          <option value="REEMBOLSO_MEDICO">Reembolso Médico</option>
+          <option value="ACCIDENTE">Accidente</option>
+          <option value="ENFERMEDAD">Enfermedad</option>
+          <option value="FALLECIMIENTO">Fallecimiento</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Trámites -->
+  <div *ngIf="!loading && getTramitesFiltrados().length > 0" class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+          <tr>
+            <th class="text-left py-4 px-6 font-bold">Código</th>
+            <th class="text-left py-4 px-6 font-bold">Estudiante</th>
+            <th class="text-left py-4 px-6 font-bold">Tipo</th>
+            <th class="text-left py-4 px-6 font-bold">Motivo</th>
+            <th class="text-left py-4 px-6 font-bold">Fecha</th>
+            <th class="text-center py-4 px-6 font-bold">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of getTramitesFiltrados()" class="border-b border-slate-100 hover:bg-slate-50 transition-all">
+            <td class="py-4 px-6 font-mono font-bold text-indigo-600">{{ s.codigoUnico || s.idTramite }}</td>
+            <td class="py-4 px-6">
+              <div>
+                <p class="font-bold text-slate-800">{{ s.estudiante?.nombreCompleto || 'N/A' }}</p>
+                <p class="text-xs text-slate-500">{{ s.estudiante?.cedula || 'N/A' }}</p>
+              </div>
+            </td>
+            <td class="py-4 px-6">
+              <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
+                {{ getTipoLabel(s.tipoTramite) }}
+              </span>
+            </td>
+            <td class="py-4 px-6">{{ s.motivo || s.descripcion || 'Sin descripción' }}</td>
+            <td class="py-4 px-6 text-sm text-slate-600">{{ s.fechaRegistro | date:'short' }}</td>
+            <td class="py-4 px-6 text-center">
+              <span [class]="'px-3 py-1 rounded-lg text-xs font-bold ' + getEstadoColor(s.estadoCaso)">
+                {{ s.estadoCaso?.toUpperCase() || 'N/A' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sin resultados con filtros -->
+  <div *ngIf="!loading && siniestros.length > 0 && getTramitesFiltrados().length === 0" class="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
+    <p class="text-slate-500 text-lg">No hay trámites que coincidan con los filtros seleccionados.</p>
+  </div>
+
+  <!-- Backend Testing Section (solo para ADMIN) -->
+  <div *ngIf="userRole === 'ADMIN'" class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 space-y-4">
+    <h3 class="text-xl font-black text-amber-900">🔧 Prueba de Backend (Admin Only)</h3>
+    <div class="grid gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input class="border-2 border-amber-200 rounded-lg px-4 py-2 focus:border-amber-400 outline-none" placeholder="ID Estudiante" [(ngModel)]="nuevo.idEstudiante" />
+        <input class="border-2 border-amber-200 rounded-lg px-4 py-2 focus:border-amber-400 outline-none" placeholder="Descripción" [(ngModel)]="nuevo.descripcion" />
+      </div>
+      <button (click)="crearTramiteBackend()" [disabled]="creando" class="px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50">
         {{ creando ? 'Creando…' : 'Crear Trámite' }}
       </button>
-      <input class="border rounded px-3 py-2" placeholder="ID Trámite" [(ngModel)]="tramiteId" />
+      <input class="border-2 border-amber-200 rounded-lg px-4 py-2 focus:border-amber-400 outline-none" placeholder="ID Trámite para probar" [(ngModel)]="tramiteId" />
       <div class="flex gap-2 flex-wrap">
-        <button (click)="validarBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Validar</button>
-        <input class="border rounded px-3 py-2" placeholder="ID Aseguradora" [(ngModel)]="idAseguradora" />
-        <button (click)="enviarAsegBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Enviar a Aseguradora</button>
-        <button (click)="aprobarBackend()" class="px-3 py-2 bg-green-700 text-white rounded">Registrar Aprobado</button>
-        <button (click)="solicitarCorreccionesBackend()" class="px-3 py-2 bg-amber-600 text-white rounded">Solicitar Correcciones</button>
-        <input class="border rounded px-3 py-2" placeholder="Referencia de Pago" [(ngModel)]="referenciaPago" />
-        <button (click)="confirmarPagoBackend()" class="px-3 py-2 bg-indigo-700 text-white rounded">Confirmar Pago</button>
-        <button (click)="verHistorialBackend()" class="px-3 py-2 bg-slate-700 text-white rounded">Ver Historial</button>
+        <button (click)="validarBackend()" class="px-3 py-2 bg-slate-700 text-white rounded font-bold hover:bg-slate-800">Validar</button>
+        <input class="border-2 border-amber-200 rounded px-3 py-2 focus:border-amber-400 outline-none" placeholder="ID Aseguradora" [(ngModel)]="idAseguradora" />
+        <button (click)="enviarAsegBackend()" class="px-3 py-2 bg-slate-700 text-white rounded font-bold hover:bg-slate-800">Enviar Aseg</button>
+        <button (click)="aprobarBackend()" class="px-3 py-2 bg-green-700 text-white rounded font-bold hover:bg-green-800">Aprobar</button>
+        <button (click)="solicitarCorreccionesBackend()" class="px-3 py-2 bg-amber-600 text-white rounded font-bold hover:bg-amber-700">Correcciones</button>
+        <button (click)="verHistorialBackend()" class="px-3 py-2 bg-slate-700 text-white rounded font-bold hover:bg-slate-800">Historial</button>
       </div>
-      <div class="text-sm text-slate-700">{{ backendMsg }}</div>
-    </div>
-
-    <div class="grid gap-3">
-      <h4 class="text-xl font-bold">Subir Documento (backend)</h4>
-      <div class="flex gap-2 items-center flex-wrap">
-        <select class="border rounded px-3 py-2" [(ngModel)]="tipoDocumento">
-          <option value="IDENTIDAD">IDENTIDAD</option>
-          <option value="CERT_MATRICULA">CERT_MATRICULA</option>
-          <option value="OTROS">OTROS</option>
-        </select>
-        <input type="file" (change)="onArchivoChange($event)" />
-        <button (click)="subirDocumentoBackend()" class="px-3 py-2 bg-teal-700 text-white rounded">Subir</button>
-      </div>
+      <input class="border-2 border-amber-200 rounded-lg px-4 py-2 focus:border-amber-400 outline-none" placeholder="Referencia de Pago" [(ngModel)]="referenciaPago" />
+      <button (click)="confirmarPagoBackend()" class="px-4 py-2 bg-indigo-700 text-white rounded-lg font-bold hover:bg-indigo-800">Confirmar Pago</button>
+      <div class="text-sm text-slate-700 p-3 bg-white rounded border border-amber-200">{{ backendMsg }}</div>
     </div>
   </ng-container>
 </div>

@@ -29,6 +29,7 @@ export interface DashboardClienteData {
 export interface DashboardGestorData {
   tramitesEnValidacion: any[];
   documentosPendientes: any[];
+  notificacionesPendientes: any[];
   estudiantesActivos: number;
   tramitesHoy: number;
 }
@@ -153,6 +154,7 @@ export class DashboardService {
       const tramitesEnValidacion = tramites.filter(t => t.estadoCaso === 'EN_VALIDACION');
       const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
       const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
+      const notificaciones = await firstValueFrom(this.api.get<any[]>('/notificaciones/no-leidas')).catch(() => []);
       const estudiantesActivos = estudiantes.filter(e => e.estadoAcademico === 'ACTIVO').length;
 
       // Contar trámites de hoy
@@ -170,6 +172,9 @@ export class DashboardService {
           fechaRegistro: this.convertirFecha(t.fechaRegistro)
         })),
         documentosPendientes: documentos.slice(0, 10), // Últimos 10
+        notificacionesPendientes: (notificaciones || [])
+          .map(n => ({ ...n, fechaEnvio: this.convertirFecha(n.fechaEnvio) }))
+          .sort((a, b) => (b.fechaEnvio as Date).getTime() - (a.fechaEnvio as Date).getTime()),
         estudiantesActivos,
         tramitesHoy
       };
@@ -178,6 +183,7 @@ export class DashboardService {
       return {
         tramitesEnValidacion: [],
         documentosPendientes: [],
+        notificacionesPendientes: [],
         estudiantesActivos: 0,
         tramitesHoy: 0
       };

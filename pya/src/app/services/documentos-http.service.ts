@@ -14,8 +14,8 @@ export class DocumentosHttpService {
 
   subirArchivo(idTramite: string, file: File, tipo: string) {
     const form = new FormData();
-    form.append('file', file);
-    form.append('idTramite', idTramite);
+    form.append('archivo', file);
+    form.append('tramiteId', idTramite);
     form.append('tipo', tipo);
     return this.http.post(`${this.base}/documentos/upload`, form);
   }
