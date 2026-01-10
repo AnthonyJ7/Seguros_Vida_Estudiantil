@@ -1,7 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { FirestoreService } from '../../services/firestore.service';
+import { NotificacionesHttpService } from '../../services/notificaciones-http.service';
 import { FirebaseDatePipe } from '../../pipes/firebase-date.pipe';
 
 @Component({
@@ -15,8 +17,17 @@ export class NotificacionesComponent implements OnInit {
   notificaciones: any[] = [];
   estudiante: any = null;
   error = '';
+  role = '';
 
-  constructor(private firestore: FirestoreService, private cdr: ChangeDetectorRef) {}
+  get homeLink(): string {
+    return this.role === 'CLIENTE' ? '/cliente-inicio' : '/gestor-dashboard';
+  }
+
+  constructor(
+    private firestore: FirestoreService,
+    private notifHttp: NotificacionesHttpService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.cargar();
@@ -28,10 +39,20 @@ export class NotificacionesComponent implements OnInit {
     
     try {
       const uid = localStorage.getItem('uid') || '';
+      this.role = (localStorage.getItem('role') || localStorage.getItem('userRole') || '').toUpperCase();
 
       if (!uid) {
         this.error = 'No hay sesión activa.';
         this.cargando = false;
+        return;
+      }
+
+      // Ramas separadas por rol: clientes usan Firestore (idEstudiante), gestores/admin usan API
+      if (this.role && this.role !== 'CLIENTE') {
+        const notisApi = await firstValueFrom(this.notifHttp.noLeidas());
+        this.notificaciones = (notisApi || []).sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime());
+        this.cargando = false;
+        this.cdr.markForCheck();
         return;
       }
 

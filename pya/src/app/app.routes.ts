@@ -29,7 +29,8 @@ export const routes: Routes = [
   { path: 'cliente-inicio', component: ClienteInicioComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
   { path: 'mi-solicitud', component: MiSolicitudComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
   { path: 'envio-documentos', component: EnvioDocumentosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
-  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+  // Notificaciones también lo usan gestores (y admins para debug), no solo clientes
+  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },
   { path: 'siniestros', component: SiniestrosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
   { path: 'registro-siniestro', component: RegistroSiniestroComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
   
