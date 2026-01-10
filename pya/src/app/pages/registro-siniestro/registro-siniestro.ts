@@ -47,7 +47,7 @@ export class RegistroSiniestroComponent {
       this.newSiniestro = {};
       this.archivoSeleccionado = null;
       setTimeout(() => {
-        this.router.navigate(['/user-dashboard']);
+        this.router.navigate(['/cliente-inicio']);
       }, 1200);
     } catch (error) {
       console.error('Error registrando siniestro:', error);

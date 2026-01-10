@@ -1,0 +1,144 @@
+<div class="max-w-5xl mx-auto p-4 space-y-6">
+  <!-- Loading -->
+  <div *ngIf="cargando" class="text-center py-20">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    <p class="mt-4 text-slate-500">Cargando documentos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !cargando" class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800">
+    {{ error }}
+    <a routerLink="/cliente-inicio" class="ml-3 underline font-bold">Volver al inicio</a>
+  </div>
+
+  <!-- Success -->
+  <div *ngIf="success" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-800">
+    ✓ {{ success }}
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!cargando && tramite">
+    <div class="mb-6">
+      <a routerLink="/cliente-inicio" class="text-indigo-600 font-bold text-sm hover:underline">← Volver al inicio</a>
+      <h2 class="text-3xl font-black text-slate-800 mt-3">Envío de Documentos</h2>
+      <p class="text-slate-500 mt-1">Carga los documentos requeridos para tu solicitud</p>
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 text-indigo-900 text-sm">
+      <strong>ℹ️ Instrucciones:</strong> Selecciona cada documento requerido y súbelo en formato PDF o imagen. 
+      Los documentos se validarán y recibirás notificaciones del estado.
+    </div>
+
+    <!-- Estado del trámite compacto -->
+    <div class="bg-slate-100 rounded-xl p-4 mb-6">
+      <p class="text-xs font-bold text-slate-600 uppercase">Estado del Trámite:</p>
+      <p class="text-lg font-black" 
+         [ngClass]="{
+           'text-amber-600': (tramite.estadoCaso | uppercase) === 'EN_VALIDACION',
+           'text-emerald-600': (tramite.estadoCaso | uppercase) === 'APROBADO',
+           'text-red-600': (tramite.estadoCaso | uppercase) === 'RECHAZADO'
+         }">
+        {{ tramite.estadoCaso }}
+      </p>
+    </div>
+
+    <!-- Tabla de documentos -->
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-100 border-b">
+            <tr>
+              <th class="px-6 py-4 text-left font-black text-slate-800">Documento</th>
+              <th class="px-6 py-4 text-left font-bold text-slate-600">Descripción</th>
+              <th class="px-6 py-4 text-center font-bold text-slate-600">Estado</th>
+              <th class="px-6 py-4 text-center font-bold text-slate-600">Acción</th>
+              <th class="px-6 py-4 text-center font-bold text-slate-600">Requerido</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr *ngFor="let doc of documentosRequeridos; let i = index" [ngClass]="{ 'bg-slate-50': i % 2 === 0 }">
+              <!-- Nombre -->
+              <td class="px-6 py-4 font-bold text-slate-800">
+                {{ doc.nombre }}
+              </td>
+
+              <!-- Descripción -->
+              <td class="px-6 py-4 text-slate-600">
+                {{ doc.descripcion }}
+              </td>
+
+              <!-- Estado -->
+              <td class="px-6 py-4 text-center">
+                <span [ngClass]="getEstadoBadge(doc.estado)" 
+                      class="inline-block px-3 py-1 rounded-full font-bold text-xs">
+                  {{ getEstadoTexto(doc.estado) }}
+                </span>
+              </td>
+
+              <!-- Acción: Upload -->
+              <td class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <label class="cursor-pointer px-3 py-1 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition">
+                    📎 Seleccionar
+                    <input 
+                      type="file" 
+                      class="hidden" 
+                      (change)="onFileSelected(doc.id, $event)"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    />
+                  </label>
+                  <button 
+                    (click)="subirDocumento(doc.id, doc.nombre)"
+                    [disabled]="!archivoSeleccionado[doc.id] || cargandoDocumentos[doc.id]"
+                    class="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ cargandoDocumentos[doc.id] ? '⏳' : '📤' }} Subir
+                  </button>
+                </div>
+                <p *ngIf="archivoSeleccionado[doc.id]" class="text-xs text-slate-500 mt-1">
+                  {{ archivoSeleccionado[doc.id]?.name }}
+                </p>
+              </td>
+
+              <!-- Requerido -->
+              <td class="px-6 py-4 text-center">
+                <span *ngIf="doc.obligatorio" class="text-red-600 font-black text-lg">*</span>
+                <span *ngIf="!doc.obligatorio" class="text-slate-400 text-sm">Opcional</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-slate-500 text-xs font-bold uppercase mb-2">Total de Documentos</p>
+        <p class="text-2xl font-black text-slate-800">{{ documentosRequeridos.length }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-slate-500 text-xs font-bold uppercase mb-2">Aprobados</p>
+        <p class="text-2xl font-black text-emerald-600">
+          {{ getAprobadosCount() }}
+        </p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-slate-500 text-xs font-bold uppercase mb-2">Pendientes</p>
+        <p class="text-2xl font-black text-amber-600">
+          {{ getPendientesCount() }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      <a routerLink="/mi-solicitud" class="block px-4 py-3 bg-slate-800 text-white rounded-xl font-bold text-center hover:bg-slate-900 transition">
+        📄 Ver Mi Solicitud
+      </a>
+      <a routerLink="/notificaciones" class="block px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold text-center hover:bg-emerald-700 transition">
+        💬 Ver Mensajes
+      </a>
+    </div>
+  </div>
+</div>

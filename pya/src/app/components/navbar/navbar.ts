@@ -27,7 +27,7 @@ export class NavbarComponent implements OnInit {
 
   loadUserData() {
     const usuarioId = localStorage.getItem('uid') || '';
-    const userRole = localStorage.getItem('userRole') || 'CLIENTE';
+    const userRole = localStorage.getItem('role') || 'CLIENTE';
     this.userRole = userRole;
     this.roleConfig = getRoleConfig(userRole);
     this.roleStyles = ROLE_STYLES[userRole as keyof typeof ROLE_STYLES] || ROLE_STYLES['CLIENTE'];

@@ -29,10 +29,10 @@ export class AuthService {
           this.router.navigate(['/gestor-dashboard']);
         break;
         case 'CLIENTE':
-          this.router.navigate(['/user-dashboard']);
+          this.router.navigate(['/cliente-inicio']);
           break;
       default:
-        this.router.navigate(['/user-dashboard']);
+        this.router.navigate(['/cliente-inicio']);
         break;
     }
   }

@@ -60,38 +60,35 @@
       <div *ngIf="userRole === 'CLIENTE'" class="space-y-2">
         <a 
           *ngIf="canAccess('dashboard')"
-          routerLink="/user-dash" 
+          routerLink="/cliente-inicio" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
           <span class="text-2xl min-w-[32px]">📊</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mi Dashboard</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Inicio</span>
         </a>
-        
+
         <a 
-          *ngIf="canAccess('polizas')"
-          routerLink="/polizas" 
+          routerLink="/mi-solicitud" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
           <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mis Pólizas</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mi Solicitud</span>
         </a>
 
         <a 
-          *ngIf="canAccess('siniestros')"
-          routerLink="/siniestros" 
+          routerLink="/envio-documentos" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">⚠️</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Reportar Siniestro</span>
+          <span class="text-2xl min-w-[32px]">📎</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Envío de Documentos</span>
         </a>
 
         <a 
-          *ngIf="canAccess('documentos')"
-          routerLink="/documentos" 
+          routerLink="/notificaciones" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📄</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Documentos</span>
+          <span class="text-2xl min-w-[32px]">🔔</span>
+          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Notificaciones</span>
         </a>
       </div>
 
@@ -99,7 +96,7 @@
       <div *ngIf="userRole === 'GESTOR'" class="space-y-2">
         <a 
           *ngIf="canAccess('dashboard')"
-          routerLink="/admin-dash" 
+          routerLink="/gestor-dashboard" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
           <span class="text-2xl min-w-[32px]">📊</span>
@@ -147,7 +144,7 @@
       <div *ngIf="userRole === 'ADMIN'" class="space-y-2">
         <a 
           *ngIf="canAccess('dashboard')"
-          routerLink="/admin-dash" 
+          routerLink="/admin-dashboard" 
           routerLinkActive="opacity-100 scale-105" 
           class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
           <span class="text-2xl min-w-[32px]">🎛️</span>
