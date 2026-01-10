@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { AuthService } from '../../services/auth.service';
-import { FirestoreService } from '../../services/firestore.service';
+import { UsuariosHttpService } from '../../services/usuarios-http.service';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 @Component({
@@ -12,13 +12,13 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
   standalone: true,
   imports: [CommonModule, FormsModule], // IMPORTANTE
   templateUrl: './login.html',
-  providers: [FirestoreService]
+  providers: []
 })
 export class LoginComponent {
   email = '';
   password = '';
 
-  constructor(private authService: AuthService, private firestoreService: FirestoreService) {}
+  constructor(private authService: AuthService, private usuariosHttp: UsuariosHttpService) {}
 
   async onLogin() {
     try {
@@ -26,18 +26,29 @@ export class LoginComponent {
       // Autenticación segura con Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
       const user = userCredential.user;
-      // Buscar datos adicionales (rol, nombre, etc) en Firestore por uid
-      const usuarios = await this.firestoreService.getDocumentsWithCondition('usuarios', 'uid', '==', user.uid);
-      if (!usuarios.length) {
-        alert('Usuario sin perfil en Firestore');
+      
+      // IMPORTANTE: Obtener y guardar el token ANTES de llamar al backend
+      const token = await user.getIdToken();
+      localStorage.setItem('idToken', token);
+      localStorage.setItem('uid', user.uid);
+      
+      // Ahora sí, buscar datos adicionales desde backend (perfil del usuario autenticado)
+      const usuario = await new Promise<any>((resolve, reject) => {
+        this.usuariosHttp.me().subscribe({ next: resolve, error: reject });
+      });
+      if (!usuario) {
+        alert('Usuario sin perfil en backend');
         return;
       }
-      const usuario = usuarios[0];
       if (usuario.activo === false) {
         alert('Usuario inactivo, contacte al administrador');
         return;
       }
-      localStorage.setItem('uid', usuario.uid || usuario.id);
+      // Persistir datos para navbar
+      localStorage.setItem('userRole', (usuario.rol || '').toUpperCase());
+      if (usuario.nombre) {
+        localStorage.setItem('userName', usuario.nombre);
+      }
       this.authService.login(usuario.rol);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {

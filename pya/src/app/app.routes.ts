@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login';
 import { UserDashComponent } from './pages/user-dash/user-dash';
 import { AdminDashComponent } from './pages/admin-dash/admin-dash';
+import { GestorDashComponent } from './pages/gestor-dash/gestor-dash';
 import { RegistroSiniestroComponent } from './pages/registro-siniestro/registro-siniestro';
 import { DocumentosComponent } from './pages/documentos/documentos';
 import { SiniestrosComponent } from './pages/siniestros/siniestros';

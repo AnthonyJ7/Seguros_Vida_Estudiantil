@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h2 class="title">🔍 Auditorías del Sistema</h2>
+      <p class="subtitle">Historial completo de todas las acciones realizadas en el sistema</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card">
+    <h3 class="section-title">🔎 Filtrar Auditorías</h3>
+    <div class="filters-grid">
+      <div>
+        <label>Acción</label>
+        <input [(ngModel)]="filtroAccion" placeholder="Ej: CREAR, ACTUALIZAR..." />
+      </div>
+      <div>
+        <label>Usuario</label>
+        <input [(ngModel)]="filtroUsuario" placeholder="ID de usuario..." />
+      </div>
+      <div>
+        <label>Trámite</label>
+        <input [(ngModel)]="filtroTramite" placeholder="ID de trámite..." />
+      </div>
+      <div class="filter-actions">
+        <button (click)="cargarDatos()" [disabled]="cargando">
+          {{ cargando ? 'Buscando...' : '🔄 Actualizar' }}
+        </button>
+        <button (click)="limpiarFiltros()" class="btn-secondary">
+          ✖ Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div>
+        <div class="stat-value">{{ auditorias.length }}</div>
+        <div class="stat-label">Total de Registros</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div>
+        <div class="stat-value">{{ auditoriasFiltradas.length }}</div>
+        <div class="stat-label">Registros Filtrados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listado de Auditorías -->
+  <div class="card">
+    <h3 class="section-title">📜 Historial de Auditorías</h3>
+    
+    <div *ngIf="cargando" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando auditorías...</p>
+    </div>
+
+    <div *ngIf="!cargando && auditoriasFiltradas.length === 0" class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p class="empty-title">No se encontraron auditorías</p>
+      <p class="empty-subtitle">Intenta ajustar los filtros o verifica que existan registros</p>
+    </div>
+
+    <div *ngIf="!cargando && auditoriasFiltradas.length > 0" class="auditorias-list">
+      <div *ngFor="let auditoria of auditoriasFiltradas" 
+           class="auditoria-item"
+           [ngClass]="getAccionClass(auditoria.accion)">
+        <div class="auditoria-header">
+          <div class="auditoria-accion">
+            <span class="accion-icon">{{ getAccionIcon(auditoria.accion) }}</span>
+            <span class="accion-text">{{ auditoria.accion }}</span>
+          </div>
+          <div class="auditoria-fecha">
+            {{ auditoria.fechaHora | date:'dd/MM/yyyy HH:mm:ss' }}
+          </div>
+        </div>
+        
+        <div class="auditoria-details">
+          <div class="detail-item">
+            <span class="detail-label">👤 Usuario:</span>
+            <span class="detail-value">{{ getNombreUsuario(auditoria.usuario) }}</span>
+          </div>
+          <div class="detail-item" *ngIf="auditoria.idTramite">
+            <span class="detail-label">📝 Trámite:</span>
+            <span class="detail-value">{{ auditoria.idTramite }}</span>
+          </div>
+          <div class="detail-item full-width" *ngIf="auditoria.detalles">
+            <span class="detail-label">ℹ️ Detalles:</span>
+            <span class="detail-value">{{ auditoria.detalles }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

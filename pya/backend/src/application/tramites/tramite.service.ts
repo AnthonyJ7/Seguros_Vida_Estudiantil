@@ -4,6 +4,7 @@ import { TramitesRepository } from '../../infrastructure/repositories/tramites.r
 import { EstudiantesService } from '../estudiantes/estudiantes.service';
 import { ReglasService } from '../reglas/reglas.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { TipoNotificacion } from '../../domain/notificacion';
 import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repo';
 import { BeneficiariosRepository } from '../../infrastructure/repositories/beneficiarios.repo';
 import { DocumentosRepository } from '../../infrastructure/repositories/documentos.repo';
@@ -27,6 +28,7 @@ export class TramiteService {
   private auditoriaRepo = new AuditoriaRepository();
   private beneficiariosRepo = new BeneficiariosRepository();
   private documentosRepo = new DocumentosRepository();
+  private gestorFallbackUid = process.env.GESTOR_UID_DEFAULT || 'UAGpe4hb4gXKsVEK97fn3MFQKK53';
 
   async crearTramite(dto: CrearTramiteDTO, creadoPor: string, rol: string) {
     // 1. Verificar elegibilidad del estudiante (según diagrama de secuencia)
@@ -246,6 +248,21 @@ export class TramiteService {
       tramite.estudiante.cedula
     );
 
+    // Notificar también al gestor que llevó el caso (o al gestor por defecto)
+    const destinatarioGestor = (tramite.rolUltimo === 'GESTOR' && tramite.actorUltimo) 
+      ? tramite.actorUltimo 
+      : this.gestorFallbackUid;
+
+    if (destinatarioGestor) {
+      await this.notificacionesService.notificarCambioEstadoTramite(
+        id,
+        tramite.codigoUnico,
+        nuevoEstado,
+        destinatarioGestor,
+        TipoNotificacion.SISTEMA
+      );
+    }
+
     return { estado: nuevoEstado, respuestaAseguradora };
   }
 
@@ -341,10 +358,13 @@ export class TramiteService {
     };
   }
 
-  async listarTramites(params: { rol?: string; uid: string }) {
-    if (params.rol === 'gestor' || params.rol === 'admin') {
+  async listarTramites(params: { rol?: string; uid: string; estudiante?: string }) {
+    const rolUpper = (params.rol || '').toUpperCase();
+    if (rolUpper === 'GESTOR' || rolUpper === 'ADMIN') {
+      // GESTOR y ADMIN ven todos
       return this.repo.listarTodos();
     }
+    // CLIENTE solo ve sus propios (por uid creador)
     return this.repo.listarPorCreador(params.uid);
   }
 

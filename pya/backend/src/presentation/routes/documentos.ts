@@ -2,12 +2,15 @@ import { Router, Response } from 'express';
 import { verifyToken, RequestWithUser } from '../middlewares/auth';
 import { requireRole } from '../middlewares/roles';
 import { DocumentosRepository } from '../../infrastructure/repositories/documentos.repo';
+import { NotificacionesService } from '../../application/notificaciones/notificaciones.service';
+import { db } from '../../config/firebase';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
 const documentosRouter = Router();
 const repo = new DocumentosRepository();
+const notificacionesService = new NotificacionesService();
 
 // Configuración de multer para almacenamiento temporal
 const uploadDir = path.join(__dirname, '../../../uploads');
@@ -40,26 +43,35 @@ const upload = multer({
   }
 });
 
+// Listar documentos (GET /api/documentos)
+documentosRouter.get('/', verifyToken, async (req: RequestWithUser, res: Response) => {
+  try {
+    // Retornar array vacío por ahora (se filtra en frontend si es cliente)
+    res.json([]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'No se pudieron listar documentos' });
+  }
+});
+
 // Subir documento (caso de uso: Adjuntar Documentos)
 documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (req: RequestWithUser, res: Response) => {
+  let tempFilePath: string | null = null;
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió archivo' });
     }
 
+    tempFilePath = req.file.path;
     const { tramiteId, tipo, descripcion } = req.body;
     
     if (!tramiteId || !tipo) {
-      // Eliminar archivo temporal
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'tramiteId y tipo son requeridos' });
     }
 
+    console.log(`[documentos] Subiendo archivo: ${req.file.originalname} para trámite ${tramiteId}`);
+
     // Subir a Firebase Storage
     const urlArchivo = await repo.subirArchivo(req.file.path, tramiteId);
-    
-    // Eliminar archivo temporal
-    fs.unlinkSync(req.file.path);
 
     // Crear registro en Firestore
     const documento = await repo.crear({
@@ -72,13 +84,69 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
       validado: false
     });
 
+    console.log(`[documentos] Documento registrado: ${documento.idDocumento}`);
+
+    // Crear notificación para los aseguradores
+    try {
+      // Obtener el trámite para obtener información
+      const tramiteRef = db.collection('tramites').doc(tramiteId);
+      const tramiteDoc = await tramiteRef.get();
+      const tramiteData = tramiteDoc.data();
+
+      if (tramiteData) {
+        // Obtener todos los usuarios con rol ASEGURADOR
+        const usuariosSnapshot = await db.collection('usuarios').where('rol', '==', 'ASEGURADOR').get();
+        
+        // Crear notificación para cada asegurador
+        const notificacionesPromises = usuariosSnapshot.docs.map(doc => {
+          const usuarioId = doc.id;
+          return db.collection('notificaciones').add({
+            idTramite: tramiteId,
+            titulo: `Nuevo documento en trámite ${tramiteData.codigoUnico || tramiteId}`,
+            mensaje: `Se ha cargado un nuevo documento (${tipo}) para el trámite. Documento: ${documento.nombreArchivo}`,
+            tipo: 'DOCUMENTO_SUBIDO',
+            destinatario: usuarioId,
+            leida: false,
+            fechaEnvio: new Date(),
+            origen: 'DOCUMENTO_UPLOAD'
+          });
+        });
+
+        // Crear notificación específica para VpRZEMnZZhWNnBHelZysTNCaqq62
+        notificacionesPromises.push(
+          db.collection('notificaciones').add({
+            idTramite: tramiteId,
+            titulo: `Nuevo documento en trámite ${tramiteData.codigoUnico || tramiteId}`,
+            mensaje: `Se ha cargado un nuevo documento (${tipo}) para el trámite. Documento: ${documento.nombreArchivo}`,
+            tipo: 'DOCUMENTO_SUBIDO',
+            destinatario: 'VpRZEMnZZhWNnBHelZysTNCaqq62',
+            leida: false,
+            fechaEnvio: new Date(),
+            origen: 'DOCUMENTO_UPLOAD'
+          })
+        );
+
+        await Promise.all(notificacionesPromises);
+        console.log(`[documentos] Notificaciones enviadas a ${usuariosSnapshot.size} aseguradores + usuario específico`);
+      }
+    } catch (notifError) {
+      // No fallar la carga si hay error en notificaciones
+      console.warn('[documentos] Error creando notificaciones:', notifError);
+    }
+
     res.status(201).json(documento);
   } catch (err: any) {
-    // Limpiar archivo temporal en caso de error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    console.error('[documentos] Error en upload:', err);
+    res.status(500).json({ error: err.message || 'Error al subir documento' });
+  } finally {
+    // Limpiar archivo temporal en cualquier caso
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (e) {
+        console.warn('[documentos] No se pudo limpiar archivo temporal:', tempFilePath);
+      }
     }
-    res.status(500).json({ error: err.message });
   }
 });
 

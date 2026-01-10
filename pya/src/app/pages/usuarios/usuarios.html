@@ -1,0 +1,141 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h2 class="title">👥 Gestión de Usuarios</h2>
+      <p class="subtitle">Administración completa de todos los usuarios del sistema</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card">
+    <h3 class="section-title">🔎 Filtrar Usuarios</h3>
+    <div class="filters-grid">
+      <div>
+        <label>Email</label>
+        <input [(ngModel)]="filtroEmail" placeholder="Buscar por email..." />
+      </div>
+      <div>
+        <label>Rol</label>
+        <select [(ngModel)]="filtroRol">
+          <option value="">Todos los roles</option>
+          <option value="ADMIN">Administrador</option>
+          <option value="GESTOR">Gestor</option>
+          <option value="CLIENTE">Cliente</option>
+          <option value="ASEGURADORA">Aseguradora</option>
+        </select>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select [(ngModel)]="filtroEstado">
+          <option value="">Todos</option>
+          <option value="activo">Activos</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button (click)="cargarDatos()" [disabled]="cargando">
+          {{ cargando ? 'Actualizando...' : '🔄 Actualizar' }}
+        </button>
+        <button (click)="limpiarFiltros()" class="btn-secondary">
+          ✖ Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">👥</div>
+      <div>
+        <div class="stat-value">{{ totalUsuarios }}</div>
+        <div class="stat-label">Total de Usuarios</div>
+      </div>
+    </div>
+    <div class="stat-card stat-admin">
+      <div class="stat-icon">👨‍💼</div>
+      <div>
+        <div class="stat-value">{{ usuariosPorRol.admin }}</div>
+        <div class="stat-label">Administradores</div>
+      </div>
+    </div>
+    <div class="stat-card stat-gestor">
+      <div class="stat-icon">👨‍💻</div>
+      <div>
+        <div class="stat-value">{{ usuariosPorRol.gestor }}</div>
+        <div class="stat-label">Gestores</div>
+      </div>
+    </div>
+    <div class="stat-card stat-cliente">
+      <div class="stat-icon">👤</div>
+      <div>
+        <div class="stat-value">{{ usuariosPorRol.cliente }}</div>
+        <div class="stat-label">Clientes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listado de Usuarios -->
+  <div class="card">
+    <h3 class="section-title">📋 Listado de Usuarios ({{ usuariosFiltrados.length }})</h3>
+    
+    <div *ngIf="cargando" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando usuarios...</p>
+    </div>
+
+    <div *ngIf="!cargando && usuariosFiltrados.length === 0" class="empty-state">
+      <div class="empty-icon">👥</div>
+      <p class="empty-title">No se encontraron usuarios</p>
+      <p class="empty-subtitle">Intenta ajustar los filtros de búsqueda</p>
+    </div>
+
+    <div *ngIf="!cargando && usuariosFiltrados.length > 0" class="usuarios-list">
+      <div *ngFor="let usuario of usuariosFiltrados" 
+           class="usuario-item"
+           [ngClass]="getRolClass(usuario.rol)">
+        
+        <div class="usuario-header">
+          <div class="usuario-info-principal">
+            <div class="rol-badge" [ngClass]="getRolClass(usuario.rol)">
+              <span class="rol-icon">{{ getRolIcon(usuario.rol) }}</span>
+              <span class="rol-nombre">{{ getRolNombre(usuario.rol) }}</span>
+            </div>
+            <div class="usuario-email">{{ usuario.email }}</div>
+          </div>
+          <div class="usuario-estado">
+            <span class="badge" [ngClass]="usuario.activo !== false ? 'badge-activo' : 'badge-inactivo'">
+              {{ usuario.activo !== false ? '✓ Activo' : '✗ Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="usuario-details">
+          <div class="detail-row">
+            <div class="detail-item">
+              <span class="detail-label">🆔 UID:</span>
+              <span class="detail-value uid-text">{{ usuario.uid }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="getNombreEstudiante(usuario.uid)">
+              <span class="detail-label">📚 Estudiante:</span>
+              <span class="detail-value nombre-estudiante">{{ getNombreEstudiante(usuario.uid) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-item" *ngIf="usuario.fechaCreacion">
+              <span class="detail-label">📅 Fecha de Creación:</span>
+              <span class="detail-value">{{ usuario.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="usuario.ultimoAcceso">
+              <span class="detail-label">🕒 Último Acceso:</span>
+              <span class="detail-value">{{ usuario.ultimoAcceso | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

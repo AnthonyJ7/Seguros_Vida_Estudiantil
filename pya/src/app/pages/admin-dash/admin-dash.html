@@ -20,124 +20,107 @@
     <p class="mt-4 text-slate-500">Cargando datos del sistema...</p>
   </div>
 
-  <!-- Dashboard con datos reales -->
-  <div *ngIf="!cargando && datosAdmin">
+  <!-- Dashboard ADMIN -->
+  <div *ngIf="!cargando && datosAdmin" class="space-y-8">
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
-      <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Usuarios Activos</p>
-      <p class="text-3xl font-black text-slate-800">{{ datosAdmin.totalUsuarios }}</p>
-      <div class="mt-2 text-xs text-slate-400 font-bold">Registrados</div>
-    </div>
-    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
-      <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Estudiantes</p>
-      <p class="text-3xl font-black text-slate-800">{{ datosAdmin.totalEstudiantes }}</p>
-      <div class="mt-2 text-xs text-slate-400 font-bold">Registrados</div>
-    </div>
-    <div class="bg-emerald-600 p-6 rounded-[2rem] shadow-xl shadow-emerald-200 text-white">
-      <p class="text-xs font-black text-emerald-200 uppercase tracking-widest mb-2">Trámites Total</p>
-      <p class="text-3xl font-black">{{ datosAdmin.totalTramites }}</p>
-      <div class="mt-2 text-xs text-emerald-100 font-bold italic">Procesados</div>
-    </div>
-  </div>
-
-  <!-- Estadísticas de trámites por estado -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-amber-50 p-6 rounded-[2rem] border-2 border-amber-200">
-      <p class="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">⏳ En Validación</p>
-      <p class="text-4xl font-black text-amber-700">{{ datosAdmin.tramitesPorEstado.enValidacion }}</p>
-    </div>
-    <div class="bg-emerald-50 p-6 rounded-[2rem] border-2 border-emerald-200">
-      <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-2">✅ Aprobados</p>
-      <p class="text-4xl font-black text-emerald-700">{{ datosAdmin.tramitesPorEstado.aprobados }}</p>
-    </div>
-    <div class="bg-red-50 p-6 rounded-[2rem] border-2 border-red-200">
-      <p class="text-xs font-black text-red-600 uppercase tracking-widest mb-2">❌ Rechazados</p>
-      <p class="text-4xl font-black text-red-700">{{ datosAdmin.tramitesPorEstado.rechazados }}</p>
-    </div>
-  </div>
-
-  <!-- Últimas auditorías -->
-  <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6">
-    <h3 class="text-xl font-black text-slate-800 mb-4">🔍 Últimas Auditorías</h3>
-    <div *ngIf="datosAdmin.ultimasAuditorias.length === 0" class="text-center py-8 text-slate-400">
-      No hay auditorías registradas
-    </div>
-    <div *ngFor="let auditoria of datosAdmin.ultimasAuditorias" 
-         class="p-4 bg-slate-50 rounded-xl mb-3 hover:bg-slate-100 transition-all">
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="font-bold text-slate-800">{{ auditoria.accion }}</p>
-          <p class="text-sm text-slate-500">Usuario: {{ auditoria.usuario }}</p>
-          <p class="text-xs text-slate-400">Trámite: {{ auditoria.idTramite || 'N/A' }}</p>
-        </div>
-        <p class="text-xs text-slate-400">{{ auditoria.fechaHora | date:'short' }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Usuarios Activos</p>
+        <p class="text-3xl font-black text-slate-800">{{ datosAdmin.totalUsuarios }}</p>
+        <div class="mt-2 text-xs text-slate-400 font-bold">Registrados</div>
+      </div>
+      <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Estudiantes</p>
+        <p class="text-3xl font-black text-slate-800">{{ datosAdmin.totalEstudiantes }}</p>
+        <div class="mt-2 text-xs text-slate-400 font-bold">Registrados</div>
+      </div>
+      <div class="bg-emerald-600 p-6 rounded-[2rem] shadow-xl shadow-emerald-200 text-white">
+        <p class="text-xs font-black text-emerald-200 uppercase tracking-widest mb-2">Trámites Total</p>
+        <p class="text-3xl font-black">{{ datosAdmin.totalTramites }}</p>
+        <div class="mt-2 text-xs text-emerald-100 font-bold italic">Procesados</div>
       </div>
     </div>
-  </div>
 
-  <!-- Aseguradoras -->
-  <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6">
-    <h3 class="text-xl font-black text-slate-800 mb-4">🏢 Aseguradoras Activas</h3>
-    <div *ngIf="datosAdmin.aseguradoras.length === 0" class="text-center py-8 text-slate-400">
-      No hay aseguradoras registradas
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div *ngFor="let aseguradora of datosAdmin.aseguradoras"
-           class="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <p class="font-bold text-blue-900">{{ aseguradora.nombre }}</p>
-        <p class="text-sm text-blue-600">📧 {{ aseguradora.correoContacto }}</p>
+    <!-- Estadísticas de trámites por estado -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-amber-50 p-6 rounded-[2rem] border-2 border-amber-200">
+        <p class="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">⏳ En Validación</p>
+        <p class="text-4xl font-black text-amber-700">{{ datosAdmin.tramitesPorEstado.enValidacion }}</p>
+      </div>
+      <div class="bg-emerald-50 p-6 rounded-[2rem] border-2 border-emerald-200">
+        <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-2">✅ Aprobados</p>
+        <p class="text-4xl font-black text-emerald-700">{{ datosAdmin.tramitesPorEstado.aprobados }}</p>
+      </div>
+      <div class="bg-red-50 p-6 rounded-[2rem] border-2 border-red-200">
+        <p class="text-xs font-black text-red-600 uppercase tracking-widest mb-2">❌ Rechazados</p>
+        <p class="text-4xl font-black text-red-700">{{ datosAdmin.tramitesPorEstado.rechazados }}</p>
       </div>
     </div>
-  </div>
 
-  <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-
-  </div>
-
-  </div>
-    <div class="bg-slate-900 p-8 text-white flex items-center gap-4">
-      <div class="p-3 bg-indigo-500 rounded-2xl">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </div>
+    <!-- Aseguradoras -->
+    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 space-y-6">
       <div>
-        <h3 class="text-xl font-bold">Parámetros del Motor de Seguros</h3>
-        <p class="text-slate-400 text-xs uppercase tracking-tighter">Modifica las reglas lógicas del servidor</p>
+        <h3 class="text-xl font-black text-slate-800 mb-4">🏢 Aseguradoras Activas</h3>
+        <div *ngIf="datosAdmin.aseguradoras.length === 0" class="text-center py-8 text-slate-400">
+          No hay aseguradoras registradas
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let aseguradora of datosAdmin.aseguradoras"
+               class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <p class="font-bold text-blue-900">{{ aseguradora.nombre }}</p>
+            <p class="text-sm text-blue-600">📧 {{ aseguradora.correoContacto }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones de Documentos Subidos -->
+      <div class="border-t border-slate-200 pt-6" *ngIf="notificacionesDocumentos.length > 0">
+        <h4 class="text-lg font-black text-slate-800 mb-4">📄 Últimos Documentos Subidos</h4>
+        <div class="space-y-3 max-h-80 overflow-y-auto">
+          <div *ngFor="let notif of notificacionesDocumentos" 
+               class="p-4 rounded-xl border-2 border-amber-200 bg-amber-50 hover:shadow-md transition-all">
+            <div class="flex gap-3 items-start">
+              <div class="text-2xl flex-shrink-0">📄</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-800">{{ notif.titulo }}</p>
+                <p class="text-xs text-slate-600 mt-1 line-clamp-2">{{ notif.mensaje }}</p>
+                <div class="flex gap-2 mt-2 flex-wrap">
+                  <span class="text-xs px-2 py-1 rounded bg-white text-slate-600 border border-amber-200">
+                    📅 {{ notif.fechaEnvio | date:'short' }}
+                  </span>
+                  <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700" 
+                        *ngIf="notif.idTramite">
+                    Trámite: {{ notif.idTramite }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin notificaciones de documentos -->
+      <div class="border-t border-slate-200 pt-6 text-center text-slate-400" 
+           *ngIf="notificacionesDocumentos.length === 0 && !cargandoNotificaciones">
+        No hay notificaciones de documentos subidos
+      </div>
+
+      <!-- Cargando notificaciones -->
+      <div class="border-t border-slate-200 pt-6 text-center" 
+           *ngIf="cargandoNotificaciones">
+        <p class="text-sm text-slate-500">Cargando notificaciones...</p>
       </div>
     </div>
 
-    <div class="p-8 space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
-        <div class="mb-4 md:mb-0">
-          <p class="text-slate-800 font-bold text-lg">Tiempo límite de activación</p>
-          <p class="text-slate-400 text-sm">Horas máximas para procesar un seguro nuevo.</p>
-        </div>
-        <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-inner border border-slate-200">
-          <input type="number" value="48" class="w-16 text-center font-black text-indigo-600 bg-transparent outline-none">
-          <span class="text-xs font-bold text-slate-400 uppercase pr-2">Horas</span>
-        </div>
-      </div>
+    <!-- Gestión de Reglas de Negocio -->
+    <div class="p-8 space-y-6 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100">
+      <h3 class="text-xl font-black text-slate-800 mb-2">⚙️ Reglas de Negocio</h3>
+      <p class="text-slate-500 mb-4">Agrega, edita o elimina reglas activas del motor.</p>
+      <app-reglas-negocio></app-reglas-negocio>
+    </div>
 
-      <div class="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
-        <div>
-          <p class="text-slate-800 font-bold text-lg">Validación automática de documentos</p>
-          <p class="text-slate-400 text-sm italic">Usa IA para verificar DNIs y firmas.</p>
-        </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" checked class="sr-only peer">
-          <div class="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
-        </label>
-      </div>
-
-      <div class="pt-4">
-        <button class="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] hover:bg-indigo-600 shadow-2xl shadow-indigo-200 active:scale-[0.98] transition-all tracking-[0.2em] text-sm uppercase">
-          Guardar Reglas de Negocio
-        </button>
-      </div>
   </div>
+
 </div>
 
 <!-- Eliminada sección de Gestión de Datos -->

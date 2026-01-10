@@ -7,7 +7,7 @@ const reglasRouter = Router();
 const service = new ReglasService();
 
 // Listar todas las reglas
-reglasRouter.get('/', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.get('/', verifyToken, requireRole(['ADMIN', 'GESTOR']), async (req: RequestWithUser, res: Response) => {
   try {
     const reglas = await service.listar();
     res.json(reglas);
@@ -27,7 +27,7 @@ reglasRouter.get('/activas', verifyToken, async (req: RequestWithUser, res: Resp
 });
 
 // Obtener por ID
-reglasRouter.get('/:id', verifyToken, requireRole(['gestor', 'admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.get('/:id', verifyToken, requireRole(['ADMIN', 'GESTOR']), async (req: RequestWithUser, res: Response) => {
   try {
     const regla = await service.obtenerPorId(req.params.id);
     if (!regla) {
@@ -40,7 +40,7 @@ reglasRouter.get('/:id', verifyToken, requireRole(['gestor', 'admin']), async (r
 });
 
 // Crear regla
-reglasRouter.post('/', verifyToken, requireRole(['admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.post('/', verifyToken, requireRole(['ADMIN']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const regla = await service.crear(req.body, uid);
@@ -51,7 +51,7 @@ reglasRouter.post('/', verifyToken, requireRole(['admin']), async (req: RequestW
 });
 
 // Actualizar regla
-reglasRouter.put('/:id', verifyToken, requireRole(['admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.put('/:id', verifyToken, requireRole(['ADMIN']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const regla = await service.actualizar(req.params.id, req.body, uid);
@@ -62,7 +62,7 @@ reglasRouter.put('/:id', verifyToken, requireRole(['admin']), async (req: Reques
 });
 
 // Activar regla
-reglasRouter.patch('/:id/activar', verifyToken, requireRole(['admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.patch('/:id/activar', verifyToken, requireRole(['ADMIN']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const regla = await service.activar(req.params.id, uid);
@@ -73,7 +73,7 @@ reglasRouter.patch('/:id/activar', verifyToken, requireRole(['admin']), async (r
 });
 
 // Desactivar regla
-reglasRouter.patch('/:id/desactivar', verifyToken, requireRole(['admin']), async (req: RequestWithUser, res: Response) => {
+reglasRouter.patch('/:id/desactivar', verifyToken, requireRole(['ADMIN']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const regla = await service.desactivar(req.params.id, uid);
@@ -84,3 +84,12 @@ reglasRouter.patch('/:id/desactivar', verifyToken, requireRole(['admin']), async
 });
 
 export { reglasRouter };
+// Eliminar regla
+reglasRouter.delete('/:id', verifyToken, requireRole(['ADMIN']), async (req: RequestWithUser, res: Response) => {
+  try {
+    await service.eliminar(req.params.id, req.user?.uid as string);
+    res.status(204).send();
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});

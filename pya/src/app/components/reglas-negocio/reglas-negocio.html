@@ -1,21 +1,26 @@
-<h2>Gestión de Reglas de Negocio</h2>
+<div class="space-y-6">
+  <div *ngIf="successMsg" class="p-3 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">{{ errorMsg }}</div>
+  <div>
+    <h4 class="font-bold text-slate-800 mb-2">Reglas actuales</h4>
+    <div *ngIf="reglas.length === 0" class="text-slate-400 text-sm">No hay reglas registradas</div>
+    <div class="space-y-2" *ngIf="!cargando; else cargandoTpl">
+      <div *ngFor="let r of reglas" class="p-3 rounded-xl border flex items-center justify-between">
+        <div>
+          <div class="font-bold">{{ r.nombre }}</div>
+          <div class="text-slate-500 text-sm">{{ r.descripcion }}</div>
+          <div class="text-slate-400 text-xs">Valor: {{ r.valor }} • Estado: {{ r.estado ? 'Activa' : 'Inactiva' }}</div>
+        </div>
+        <div *ngIf="!soloLectura" class="flex items-center gap-2">
+          <button class="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs" [disabled]="enviando" (click)="toggleEstado(r)">{{ r.estado ? 'Desactivar' : 'Activar' }}</button>
+          <button class="px-3 py-1 rounded-lg bg-slate-200 text-slate-800 text-xs" [disabled]="enviando" (click)="updateRegla(r.idRegla!, r)">Guardar</button>
+        </div>
+      </div>
+    </div>
+    <ng-template #cargandoTpl>
+      <div class="text-slate-400 text-sm">Cargando reglas...</div>
+    </ng-template>
+  </div>
 
-<h3>Lista de Reglas</h3>
-<ul>
-  <li *ngFor="let regla of reglas">
-    <strong>{{ regla.nombre }}</strong> - {{ regla.descripcion }} - Valor: {{ regla.valor }} - Tipo: {{ regla.tipo }} - Activa: {{ regla.activa ? 'Sí' : 'No' }}
-    <button (click)="deleteRegla(regla.id)">Eliminar</button>
-  </li>
-</ul>
-
-<h3>Agregar Regla</h3>
-<form (ngSubmit)="addRegla()">
-  <input type="text" [(ngModel)]="newRegla.nombre" name="nombre" placeholder="Nombre" required>
-  <textarea [(ngModel)]="newRegla.descripcion" name="descripcion" placeholder="Descripción" required></textarea>
-  <input type="text" [(ngModel)]="newRegla.valor" name="valor" placeholder="Valor" required>
-  <input type="text" [(ngModel)]="newRegla.tipo" name="tipo" placeholder="Tipo" required>
-  <label>
-    <input type="checkbox" [(ngModel)]="newRegla.activa" name="activa"> Activa
-  </label>
-  <button type="submit">Agregar</button>
-</form>
+  <!-- Formulario de creación eliminado para vista de solo lectura -->
+</div>
