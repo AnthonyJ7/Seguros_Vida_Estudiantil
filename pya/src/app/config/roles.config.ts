@@ -132,7 +132,7 @@ export const ROLES_CONFIG: { [key: string]: RoleConfig } = {
       dashboard: true,
       usuarios: false,
       estudiantes: false,
-      polizas: true,
+      polizas: false,
       siniestros: true,
       documentos: true,
       reportes: false,

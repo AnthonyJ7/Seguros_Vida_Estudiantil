@@ -4,16 +4,18 @@
 </div>
 
 @if (showNavbar) {
-  <app-navbar #miNav></app-navbar>
+  <div class="flex w-full min-h-screen">
+    <app-navbar #miNav></app-navbar>
 
-  <main 
-    [class.ml-72]="miNav.isOpen" 
-    [class.ml-20]="!miNav.isOpen" 
-    class="transition-all duration-300 min-h-screen bg-[#f8f7ff]">
-    <div class="p-8">
-      <router-outlet></router-outlet>
-    </div>
-  </main>
+    <main 
+      class="flex-1 overflow-y-auto bg-[#f8f7ff] transition-all duration-300"
+      [class.ml-72]="miNav.isOpen"
+      [class.ml-20]="!miNav.isOpen">
+      <div class="p-8">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
 } @else {
   <main class="w-full min-h-screen m-0 p-0 overflow-hidden">
     <router-outlet></router-outlet>

@@ -1,39 +1,18 @@
-import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
+// Simple role-based guard using AuthService.getRole()
 export const roleGuard: CanActivateFn = (route) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const required: string[] = (route.data && (route.data as any)['roles']) || [];
-  
-  // Obtener el rol del localStorage directamente para mayor confiabilidad
-  let role = auth.getRole();
-  if (!role) {
-    role = localStorage.getItem('userRole') || localStorage.getItem('role') || '';
-  }
-  
-  if (!role) {
-    router.navigate(['/login']);
-    return false;
-  }
-  
-  // Convertir a mayúsculas para comparación
-  const normalizedRole = role.toUpperCase();
-  
-  if (required.length && !required.includes(normalizedRole)) {
-    // Redirige según rol actual
-    switch (normalizedRole) {
-      case 'ADMIN':
-        router.navigate(['/admin-dash']);
-        break;
-      case 'GESTOR':
-        router.navigate(['/gestor-dash']);
-        break;
-      default:
-        router.navigate(['/user-dash']);
-    }
-    return false;
-  }
-  return true;
+  const role = (auth.getRole() || '').toUpperCase();
+
+  if (!required.length) return true; // no restriction
+  if (required.includes(role)) return true;
+
+  // deny and send to login
+  router.navigate(['/login']);
+  return false;
 };

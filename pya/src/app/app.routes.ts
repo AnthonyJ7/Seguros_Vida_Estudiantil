@@ -6,29 +6,27 @@ import { GestorDashComponent } from './pages/gestor-dash/gestor-dash';
 import { RegistroSiniestroComponent } from './pages/registro-siniestro/registro-siniestro';
 import { DocumentosComponent } from './pages/documentos/documentos';
 import { SiniestrosComponent } from './pages/siniestros/siniestros';
-import { EstudiantesPage } from './pages/estudiantes/estudiantes';
-import { PolizasPage } from './pages/polizas/polizas';
-import { NotificacionesPage } from './pages/notificaciones/notificaciones';
-import { AuditoriaPage } from './pages/auditoria/auditoria';
-import { UsuariosPage } from './pages/usuarios/usuarios';
-import { AseguradorasPage } from './pages/aseguradoras/aseguradoras';
+import { ClienteInicioComponent } from './pages/cliente-inicio/cliente-inicio';
+import { MiSolicitudComponent } from './pages/mi-solicitud/mi-solicitud';
+import { EnvioDocumentosComponent } from './pages/envio-documentos/envio-documentos';
+import { NotificacionesComponent } from './pages/notificaciones/notificaciones';
 import { roleGuard } from './services/role.guard';
 
 // AGREGA 'export' antes de 'const'
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'user-dash', component: UserDashComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
-  { path: 'admin-dash', component: AdminDashComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'gestor-dash', component: GestorDashComponent, canActivate: [roleGuard], data: { roles: ['GESTOR'] } },
-  { path: 'estudiantes', component: EstudiantesPage, canActivate: [roleGuard], data: { roles: ['GESTOR', 'ADMIN'] } },
-  { path: 'usuarios', component: UsuariosPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'aseguradoras', component: AseguradorasPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'auditoria', component: AuditoriaPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
-  { path: 'registro-siniestro', component: RegistroSiniestroComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR'] } },
-  { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },
-  { path: 'polizas', component: PolizasPage, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },
-  { path: 'notificaciones', component: NotificacionesPage, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },
-  { path: 'siniestros', component: SiniestrosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },
+  // Nueva página principal del estudiante
+  { path: 'cliente-inicio', component: ClienteInicioComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+  { path: 'mi-solicitud', component: MiSolicitudComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+  { path: 'envio-documentos', component: EnvioDocumentosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+  // Limitar acceso anterior para que CLIENTE no entre
+  { path: 'user-dashboard', component: UserDashComponent, canActivate: [roleGuard], data: { roles: ['GESTOR'] } },
+  { path: 'gestor-dashboard', component: UserDashComponent, canActivate: [roleGuard], data: { roles: ['GESTOR'] } },
+  { path: 'admin-dashboard', component: AdminDashComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'registro-siniestro', component: RegistroSiniestroComponent },
+  { path: 'documentos', component: DocumentosComponent },
+  { path: 'siniestros', component: SiniestrosComponent },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' }
 ];

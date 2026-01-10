@@ -5,16 +5,16 @@ import { FirestoreService } from '../../services/firestore.service';
 import { FirebaseDatePipe } from '../../pipes/firebase-date.pipe';
 
 @Component({
-  selector: 'app-notificaciones',
+  selector: 'app-cliente-inicio',
   standalone: true,
   imports: [CommonModule, RouterLink, FirebaseDatePipe],
-  templateUrl: './notificaciones.html'
+  templateUrl: './cliente-inicio.html'
 })
-export class NotificacionesComponent implements OnInit {
+export class ClienteInicioComponent implements OnInit {
   cargando = true;
-  notificaciones: any[] = [];
   estudiante: any = null;
-  error = '';
+  ultimoTramite: any = null;
+  ultimaNotificacion: any = null;
 
   constructor(private firestore: FirestoreService, private cdr: ChangeDetectorRef) {}
 
@@ -24,20 +24,12 @@ export class NotificacionesComponent implements OnInit {
 
   private async cargar() {
     this.cargando = true;
-    this.error = '';
-    
+    const uid = localStorage.getItem('uid') || '';
+
     try {
-      const uid = localStorage.getItem('uid') || '';
-
-      if (!uid) {
-        this.error = 'No hay sesión activa.';
-        this.cargando = false;
-        return;
-      }
-
-      // Timeout de 5 segundos
+      // Timeout de 5 segundos para evitar que se quede cargando
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout cargando notificaciones')), 5000)
+        setTimeout(() => reject(new Error('Timeout cargando datos')), 5000)
       );
 
       // Obtener usuario primero
@@ -45,7 +37,7 @@ export class NotificacionesComponent implements OnInit {
       const usuarios = await Promise.race([usuariosPromise, timeoutPromise]) as any[];
       const usuario = usuarios[0] || null;
 
-      // Obtener estudiante
+      // Usar estudiante del usuario o buscar por uid
       let estudiantes = [];
       if (usuario?.idEstudiante) {
         const estPromise = this.firestore.getDocumentsWithCondition('estudiantes', 'id', '==', usuario.idEstudiante);
@@ -56,23 +48,36 @@ export class NotificacionesComponent implements OnInit {
       }
       this.estudiante = estudiantes[0] || null;
 
-      if (!this.estudiante) {
-        this.error = 'No se encontró información del estudiante.';
-        this.cargando = false;
-        return;
+      // trámites del estudiante y último
+      let tramites: any[] = [];
+      if (this.estudiante) {
+        const tramitesPromise = this.firestore.getDocumentsWithCondition('tramites', 'idEstudiante', '==', this.estudiante.id);
+        tramites = await Promise.race([tramitesPromise, timeoutPromise]) as any[];
       }
+      this.ultimoTramite = tramites.sort((a, b) => this.toDate(b.fechaRegistro).getTime() - this.toDate(a.fechaRegistro).getTime())[0] || null;
 
-      // Obtener notificaciones
-      const notis = await this.firestore.getDocumentsWithCondition('notificaciones', 'idEstudiante', '==', this.estudiante.id);
-      this.notificaciones = (notis || []).sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime());
+      // última notificación
+      let notis: any[] = [];
+      if (this.estudiante) {
+        const notisPromise = this.firestore.getDocumentsWithCondition('notificaciones', 'idEstudiante', '==', this.estudiante.id);
+        notis = await Promise.race([notisPromise, timeoutPromise]) as any[];
+      }
+      this.ultimaNotificacion = notis.sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime())[0] || null;
 
     } catch (error) {
-      console.error('Error cargando notificaciones:', error);
-      this.error = 'Error al cargar las notificaciones. Intenta más tarde.';
+      console.error('Error cargando dashboard:', error);
     }
 
     this.cargando = false;
     this.cdr.markForCheck();
+  }
+
+  progresoWidth(): string {
+    const estado = (this.ultimoTramite?.estadoCaso || '').toUpperCase();
+    if (estado === 'EN_VALIDACION') return '40%';
+    if (estado === 'APROBADO') return '100%';
+    if (estado === 'RECHAZADO') return '100%';
+    return '10%';
   }
 
   private toDate(v: any): Date {

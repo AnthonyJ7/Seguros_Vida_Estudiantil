@@ -39,8 +39,11 @@ export class AuthService {
       case 'CLIENTE':
         this.router.navigate(['/user-dash']);
         break;
+        case 'CLIENTE':
+          this.router.navigate(['/cliente-inicio']);
+          break;
       default:
-        this.router.navigate(['/user-dash']);
+        this.router.navigate(['/cliente-inicio']);
         break;
     }
   }
