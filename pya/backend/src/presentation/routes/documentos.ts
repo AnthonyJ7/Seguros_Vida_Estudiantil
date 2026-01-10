@@ -2,12 +2,15 @@ import { Router, Response } from 'express';
 import { verifyToken, RequestWithUser } from '../middlewares/auth';
 import { requireRole } from '../middlewares/roles';
 import { DocumentosRepository } from '../../infrastructure/repositories/documentos.repo';
+import { NotificacionesService } from '../../application/notificaciones/notificaciones.service';
+import { db } from '../../config/firebase';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
 const documentosRouter = Router();
 const repo = new DocumentosRepository();
+const notificacionesService = new NotificacionesService();
 
 // Configuración de multer para almacenamiento temporal
 const uploadDir = path.join(__dirname, '../../../uploads');
@@ -82,6 +85,55 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
     });
 
     console.log(`[documentos] Documento registrado: ${documento.idDocumento}`);
+
+    // Crear notificación para los aseguradores
+    try {
+      // Obtener el trámite para obtener información
+      const tramiteRef = db.collection('tramites').doc(tramiteId);
+      const tramiteDoc = await tramiteRef.get();
+      const tramiteData = tramiteDoc.data();
+
+      if (tramiteData) {
+        // Obtener todos los usuarios con rol ASEGURADOR
+        const usuariosSnapshot = await db.collection('usuarios').where('rol', '==', 'ASEGURADOR').get();
+        
+        // Crear notificación para cada asegurador
+        const notificacionesPromises = usuariosSnapshot.docs.map(doc => {
+          const usuarioId = doc.id;
+          return db.collection('notificaciones').add({
+            idTramite: tramiteId,
+            titulo: `Nuevo documento en trámite ${tramiteData.codigoUnico || tramiteId}`,
+            mensaje: `Se ha cargado un nuevo documento (${tipo}) para el trámite. Documento: ${documento.nombreArchivo}`,
+            tipo: 'DOCUMENTO_SUBIDO',
+            destinatario: usuarioId,
+            leida: false,
+            fechaEnvio: new Date(),
+            origen: 'DOCUMENTO_UPLOAD'
+          });
+        });
+
+        // Crear notificación específica para VpRZEMnZZhWNnBHelZysTNCaqq62
+        notificacionesPromises.push(
+          db.collection('notificaciones').add({
+            idTramite: tramiteId,
+            titulo: `Nuevo documento en trámite ${tramiteData.codigoUnico || tramiteId}`,
+            mensaje: `Se ha cargado un nuevo documento (${tipo}) para el trámite. Documento: ${documento.nombreArchivo}`,
+            tipo: 'DOCUMENTO_SUBIDO',
+            destinatario: 'VpRZEMnZZhWNnBHelZysTNCaqq62',
+            leida: false,
+            fechaEnvio: new Date(),
+            origen: 'DOCUMENTO_UPLOAD'
+          })
+        );
+
+        await Promise.all(notificacionesPromises);
+        console.log(`[documentos] Notificaciones enviadas a ${usuariosSnapshot.size} aseguradores + usuario específico`);
+      }
+    } catch (notifError) {
+      // No fallar la carga si hay error en notificaciones
+      console.warn('[documentos] Error creando notificaciones:', notifError);
+    }
+
     res.status(201).json(documento);
   } catch (err: any) {
     console.error('[documentos] Error en upload:', err);

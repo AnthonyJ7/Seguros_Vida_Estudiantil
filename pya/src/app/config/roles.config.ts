@@ -21,6 +21,7 @@ export interface RoleConfig {
     reportes?: boolean;
     auditoria?: boolean;
     configuracion?: boolean;
+    aseguradoras?: boolean;
   };
 }
 
@@ -65,6 +66,7 @@ export const ROLES_CONFIG: { [key: string]: RoleConfig } = {
       reportes: true,
       auditoria: true,
       configuracion: true,
+      aseguradoras: true,
     },
   },
 

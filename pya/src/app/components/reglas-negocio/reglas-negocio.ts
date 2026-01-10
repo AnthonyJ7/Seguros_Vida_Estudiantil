@@ -17,11 +17,16 @@ export class ReglasNegocio implements OnInit {
   enviando = false;
   successMsg = '';
   errorMsg = '';
+  soloLectura = false; // Nuevo: para modo solo lectura
 
   constructor(private reglasHttp: ReglasHttpService) {}
 
   ngOnInit() {
     this.loadReglas();
+  }
+
+  setSoloLectura(soloLectura: boolean) {
+    this.soloLectura = soloLectura;
   }
 
   async loadReglas() {
