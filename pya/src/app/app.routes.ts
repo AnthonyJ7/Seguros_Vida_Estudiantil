@@ -11,6 +11,7 @@ import { PolizasPage } from './pages/polizas/polizas';
 import { NotificacionesPage } from './pages/notificaciones/notificaciones';
 import { AuditoriaPage } from './pages/auditoria/auditoria';
 import { UsuariosPage } from './pages/usuarios/usuarios';
+import { AseguradorasPage } from './pages/aseguradoras/aseguradoras';
 import { roleGuard } from './services/role.guard';
 
 // AGREGA 'export' antes de 'const'
@@ -21,6 +22,7 @@ export const routes: Routes = [
   { path: 'gestor-dash', component: GestorDashComponent, canActivate: [roleGuard], data: { roles: ['GESTOR'] } },
   { path: 'estudiantes', component: EstudiantesPage, canActivate: [roleGuard], data: { roles: ['GESTOR', 'ADMIN'] } },
   { path: 'usuarios', component: UsuariosPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
+  { path: 'aseguradoras', component: AseguradorasPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
   { path: 'auditoria', component: AuditoriaPage, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
   { path: 'registro-siniestro', component: RegistroSiniestroComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR'] } },
   { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { roles: ['CLIENTE', 'GESTOR', 'ADMIN'] } },

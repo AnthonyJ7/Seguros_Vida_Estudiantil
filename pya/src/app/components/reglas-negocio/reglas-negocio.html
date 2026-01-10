@@ -11,7 +11,7 @@
           <div class="text-slate-500 text-sm">{{ r.descripcion }}</div>
           <div class="text-slate-400 text-xs">Valor: {{ r.valor }} • Estado: {{ r.estado ? 'Activa' : 'Inactiva' }}</div>
         </div>
-        <div class="flex items-center gap-2">
+        <div *ngIf="!soloLectura" class="flex items-center gap-2">
           <button class="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs" [disabled]="enviando" (click)="toggleEstado(r)">{{ r.estado ? 'Desactivar' : 'Activar' }}</button>
           <button class="px-3 py-1 rounded-lg bg-slate-200 text-slate-800 text-xs" [disabled]="enviando" (click)="updateRegla(r.idRegla!, r)">Guardar</button>
         </div>

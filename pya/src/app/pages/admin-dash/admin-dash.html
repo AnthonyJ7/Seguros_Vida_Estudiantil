@@ -58,17 +58,57 @@
     </div>
 
     <!-- Aseguradoras -->
-    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6">
-      <h3 class="text-xl font-black text-slate-800 mb-4">🏢 Aseguradoras Activas</h3>
-      <div *ngIf="datosAdmin.aseguradoras.length === 0" class="text-center py-8 text-slate-400">
-        No hay aseguradoras registradas
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div *ngFor="let aseguradora of datosAdmin.aseguradoras"
-             class="p-4 bg-blue-50 rounded-xl border border-blue-200">
-          <p class="font-bold text-blue-900">{{ aseguradora.nombre }}</p>
-          <p class="text-sm text-blue-600">📧 {{ aseguradora.correoContacto }}</p>
+    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 space-y-6">
+      <div>
+        <h3 class="text-xl font-black text-slate-800 mb-4">🏢 Aseguradoras Activas</h3>
+        <div *ngIf="datosAdmin.aseguradoras.length === 0" class="text-center py-8 text-slate-400">
+          No hay aseguradoras registradas
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let aseguradora of datosAdmin.aseguradoras"
+               class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <p class="font-bold text-blue-900">{{ aseguradora.nombre }}</p>
+            <p class="text-sm text-blue-600">📧 {{ aseguradora.correoContacto }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones de Documentos Subidos -->
+      <div class="border-t border-slate-200 pt-6" *ngIf="notificacionesDocumentos.length > 0">
+        <h4 class="text-lg font-black text-slate-800 mb-4">📄 Últimos Documentos Subidos</h4>
+        <div class="space-y-3 max-h-80 overflow-y-auto">
+          <div *ngFor="let notif of notificacionesDocumentos" 
+               class="p-4 rounded-xl border-2 border-amber-200 bg-amber-50 hover:shadow-md transition-all">
+            <div class="flex gap-3 items-start">
+              <div class="text-2xl flex-shrink-0">📄</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-800">{{ notif.titulo }}</p>
+                <p class="text-xs text-slate-600 mt-1 line-clamp-2">{{ notif.mensaje }}</p>
+                <div class="flex gap-2 mt-2 flex-wrap">
+                  <span class="text-xs px-2 py-1 rounded bg-white text-slate-600 border border-amber-200">
+                    📅 {{ notif.fechaEnvio | date:'short' }}
+                  </span>
+                  <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700" 
+                        *ngIf="notif.idTramite">
+                    Trámite: {{ notif.idTramite }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin notificaciones de documentos -->
+      <div class="border-t border-slate-200 pt-6 text-center text-slate-400" 
+           *ngIf="notificacionesDocumentos.length === 0 && !cargandoNotificaciones">
+        No hay notificaciones de documentos subidos
+      </div>
+
+      <!-- Cargando notificaciones -->
+      <div class="border-t border-slate-200 pt-6 text-center" 
+           *ngIf="cargandoNotificaciones">
+        <p class="text-sm text-slate-500">Cargando notificaciones...</p>
       </div>
     </div>
 

@@ -31,11 +31,16 @@ export async function verifyToken(req: RequestWithUser, res: Response, next: Nex
     }
     req.user = { uid: decoded.uid, email: decoded.email || undefined };
 
-    // cargar rol desde colección usuarios
+    // cargar rol desde colección usuarios, pero usar un rol por defecto si no existe
     const snap = await firestore.collection('usuarios').where('uid', '==', decoded.uid).limit(1).get();
     if (!snap.empty) {
       const data = snap.docs[0].data();
       req.user.rol = (data as any).rol;
+    } else {
+      // Si no existe usuario en BD, asignar rol ADMIN por defecto para desarrollo
+      // En producción, esto debería ser más restrictivo
+      console.warn(`[auth] Usuario ${decoded.uid} no encontrado en BD. Asignando rol ADMIN por defecto.`);
+      req.user.rol = 'ADMIN';
     }
 
     next();

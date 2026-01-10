@@ -46,13 +46,42 @@ export class DashboardService {
    */
   async getDatosAdmin(): Promise<DashboardAdminData> {
     try {
+      // Verificar si hay token disponible
+      const token = localStorage.getItem('idToken');
+      if (!token) {
+        console.warn('[dashboard] No hay token disponible. Usuario no autenticado.');
+        return {
+          totalUsuarios: 0,
+          totalEstudiantes: 0,
+          totalTramites: 0,
+          tramitesPorEstado: { enValidacion: 0, aprobados: 0, rechazados: 0 },
+          ultimasAuditorias: [],
+          aseguradoras: []
+        };
+      }
+
       // Obtener todos los datos necesarios en paralelo
       const [usuarios, estudiantes, tramites, auditorias, aseguradoras] = await Promise.all([
-        firstValueFrom(this.api.get<any[]>('/usuarios')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/tramites')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/auditoria')).catch(() => []),
-        firstValueFrom(this.api.get<any[]>('/aseguradoras')).catch(() => [])
+        firstValueFrom(this.api.get<any[]>('/usuarios')).catch((err) => {
+          console.error('[dashboard] Error obteniendo usuarios:', err);
+          return [];
+        }),
+        firstValueFrom(this.api.get<any[]>('/estudiantes')).catch((err) => {
+          console.error('[dashboard] Error obteniendo estudiantes:', err);
+          return [];
+        }),
+        firstValueFrom(this.api.get<any[]>('/tramites')).catch((err) => {
+          console.error('[dashboard] Error obteniendo tramites:', err);
+          return [];
+        }),
+        firstValueFrom(this.api.get<any[]>('/auditoria')).catch((err) => {
+          console.error('[dashboard] Error obteniendo auditoria:', err);
+          return [];
+        }),
+        firstValueFrom(this.api.get<any[]>('/aseguradoras')).catch((err) => {
+          console.error('[dashboard] Error obteniendo aseguradoras:', err);
+          return [];
+        })
       ]);
 
       // Contar trámites por estado
@@ -150,8 +179,11 @@ export class DashboardService {
     try {
       const tramites = await firstValueFrom(this.api.get<any[]>('/tramites')).catch(() => []);
       
-      // Filtrar trámites en validación
-      const tramitesEnValidacion = tramites.filter(t => t.estadoCaso === 'EN_VALIDACION');
+      // Filtrar trámites en validación (EN_VALIDACION) + trámites revisados por aseguradoras (REVISADO_ASEGURADORA)
+      const tramitesEnValidacion = tramites.filter(t => {
+        const estado = (t.estadoCaso || '').toLowerCase();
+        return estado === 'en_validacion' || estado === 'revisado_aseguradora';
+      });
       const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
       const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
       const notificaciones = await firstValueFrom(this.api.get<any[]>('/notificaciones/no-leidas')).catch(() => []);
