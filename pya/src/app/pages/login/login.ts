@@ -22,22 +22,37 @@ export class LoginComponent {
 
   async onLogin() {
     try {
+      console.log('🔐 Iniciando login con:', this.email);
       const auth = getAuth();
       // Autenticación segura con Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
       const user = userCredential.user;
+      console.log('✅ Firebase Auth exitoso. UID:', user.uid);
       
       // IMPORTANTE: Obtener y guardar el token ANTES de llamar al backend
       const token = await user.getIdToken();
       localStorage.setItem('idToken', token);
       localStorage.setItem('uid', user.uid);
+      console.log('✅ Token obtenido y guardado en localStorage');
       
       // Ahora sí, buscar datos adicionales desde backend (perfil del usuario autenticado)
+      console.log('📡 Llamando a /api/usuarios/me...');
       const usuario = await new Promise<any>((resolve, reject) => {
-        this.usuariosHttp.me().subscribe({ next: resolve, error: reject });
+        this.usuariosHttp.me().subscribe({ 
+          next: (data) => {
+            console.log('✅ Respuesta de /api/usuarios/me:', data);
+            resolve(data);
+          },
+          error: (error) => {
+            console.error('❌ Error en /api/usuarios/me:', error);
+            reject(error);
+          }
+        });
       });
+      
       if (!usuario) {
         alert('Usuario sin perfil en backend');
+        console.error('❌ usuario es null o undefined');
         return;
       }
       if (usuario.activo === false) {
@@ -49,8 +64,10 @@ export class LoginComponent {
       if (usuario.nombre) {
         localStorage.setItem('userName', usuario.nombre);
       }
+      console.log('✅ Datos de usuario guardados. Rol:', usuario.rol);
       this.authService.login(usuario.rol);
     } catch (error: any) {
+      console.error('❌ Error en onLogin:', error);
       if (error.code === 'auth/user-not-found') {
         alert('Usuario no encontrado');
       } else if (error.code === 'auth/wrong-password') {

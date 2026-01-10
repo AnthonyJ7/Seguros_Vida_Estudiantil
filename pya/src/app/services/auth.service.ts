@@ -22,6 +22,7 @@ export class AuthService {
   // pero mantendremos getRole() para tu compatibilidad actual
   login(role: string) {
     const cleanRole = role.toUpperCase(); // Aseguramos mayúsculas
+    console.log('🔑 AuthService.login() llamado con rol:', cleanRole);
     localStorage.setItem('userRole', cleanRole);
     localStorage.setItem('role', cleanRole); // Retrocompatibilidad
     
@@ -29,23 +30,28 @@ export class AuthService {
     this.roleSubject.next(cleanRole);
 
     // Redirección profesional
+    let route = '/cliente-inicio';
     switch (cleanRole) {
       case 'ADMIN':
-        this.router.navigate(['/admin-dash']);
+        route = '/admin-dashboard';
         break;
       case 'GESTOR':
-        this.router.navigate(['/gestor-dash']);
+        route = '/gestor-dashboard';
         break;
       case 'CLIENTE':
-        this.router.navigate(['/user-dash']);
+        route = '/cliente-inicio';
         break;
-        case 'CLIENTE':
-          this.router.navigate(['/cliente-inicio']);
-          break;
       default:
-        this.router.navigate(['/cliente-inicio']);
+        route = '/cliente-inicio';
         break;
     }
+    
+    console.log('🚀 Navegando a:', route);
+    this.router.navigate([route]).then(success => {
+      console.log('✅ Navegación completada. Éxito:', success);
+    }).catch(error => {
+      console.error('❌ Error en navegación:', error);
+    });
   }
 
   logout() {
