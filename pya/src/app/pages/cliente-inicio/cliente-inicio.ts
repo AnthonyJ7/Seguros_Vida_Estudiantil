@@ -1,6 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../services/api.service';
+import { NotificacionesHttpService } from '../../services/notificaciones-http.service';
 import { FirestoreService } from '../../services/firestore.service';
 import { FirebaseDatePipe } from '../../pipes/firebase-date.pipe';
 
@@ -16,7 +19,12 @@ export class ClienteInicioComponent implements OnInit {
   ultimoTramite: any = null;
   ultimaNotificacion: any = null;
 
-  constructor(private firestore: FirestoreService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private firestore: FirestoreService,
+    private api: ApiService,
+    private notifHttp: NotificacionesHttpService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.cargar();
@@ -27,43 +35,41 @@ export class ClienteInicioComponent implements OnInit {
     const uid = localStorage.getItem('uid') || '';
 
     try {
-      // Timeout de 5 segundos para evitar que se quede cargando
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout cargando datos')), 5000)
-      );
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout cargando datos')), 5000));
 
-      // Obtener usuario primero
+      // Datos basicos del estudiante desde Firestore
       const usuariosPromise = this.firestore.getDocumentsWithCondition('usuarios', 'uid', '==', uid);
-      const usuarios = await Promise.race([usuariosPromise, timeoutPromise]) as any[];
+      const usuarios = await Promise.race([usuariosPromise, timeout]) as any[];
       const usuario = usuarios[0] || null;
 
-      // Usar estudiante del usuario o buscar por uid
       let estudiantes = [];
       if (usuario?.idEstudiante) {
         const estPromise = this.firestore.getDocumentsWithCondition('estudiantes', 'id', '==', usuario.idEstudiante);
-        estudiantes = await Promise.race([estPromise, timeoutPromise]) as any[];
+        estudiantes = await Promise.race([estPromise, timeout]) as any[];
       } else {
         const estPromise = this.firestore.getDocumentsWithCondition('estudiantes', 'uidUsuario', '==', uid);
-        estudiantes = await Promise.race([estPromise, timeoutPromise]) as any[];
+        estudiantes = await Promise.race([estPromise, timeout]) as any[];
       }
       this.estudiante = estudiantes[0] || null;
 
-      // trámites del estudiante y último
-      let tramites: any[] = [];
-      if (this.estudiante) {
-        const tramitesPromise = this.firestore.getDocumentsWithCondition('tramites', 'idEstudiante', '==', this.estudiante.id);
-        tramites = await Promise.race([tramitesPromise, timeoutPromise]) as any[];
+      // Tramites del backend (filtrados por token). Se vuelve a filtrar por UID por seguridad defensiva.
+      try {
+        const tramites = await firstValueFrom(this.api.get<any[]>('/tramites'));
+        const propios = (tramites || []).filter(t => !t.creadoPor || t.creadoPor === uid);
+        this.ultimoTramite = propios
+          .sort((a: any, b: any) => this.toDate(b.fechaRegistro).getTime() - this.toDate(a.fechaRegistro).getTime())[0] || null;
+      } catch (err) {
+        console.error('Error cargando tramites:', err);
       }
-      this.ultimoTramite = tramites.sort((a, b) => this.toDate(b.fechaRegistro).getTime() - this.toDate(a.fechaRegistro).getTime())[0] || null;
 
-      // última notificación
-      let notis: any[] = [];
-      if (this.estudiante) {
-        const notisPromise = this.firestore.getDocumentsWithCondition('notificaciones', 'idEstudiante', '==', this.estudiante.id);
-        notis = await Promise.race([notisPromise, timeoutPromise]) as any[];
+      // Notificaciones del backend (filtradas por UID)
+      try {
+        const notis = await firstValueFrom(this.notifHttp.misNotificaciones());
+        this.ultimaNotificacion = (notis || [])
+          .sort((a: any, b: any) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime())[0] || null;
+      } catch (err) {
+        console.error('Error cargando notificaciones:', err);
       }
-      this.ultimaNotificacion = notis.sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime())[0] || null;
-
     } catch (error) {
       console.error('Error cargando dashboard:', error);
     }

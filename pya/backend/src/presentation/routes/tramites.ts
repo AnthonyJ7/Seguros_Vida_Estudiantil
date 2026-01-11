@@ -12,9 +12,13 @@ tramitesRouter.post('/', verifyToken, requireRole(['cliente', 'gestor']), async 
   try {
     const uid = req.user?.uid as string;
     const rol = req.user?.rol as string;
+    console.log('[tramites/POST] Recibido payload:', JSON.stringify(req.body, null, 2));
+    console.log('[tramites/POST] Usuario:', uid, 'Rol:', rol);
     const result = await service.crearTramite(req.body, uid, rol);
     res.status(201).json(result);
   } catch (err: any) {
+    console.error('[tramites/POST] Error:', err.message);
+    console.error('[tramites/POST] Stack:', err.stack);
     res.status(400).json({ error: err.message || 'No se pudo crear el trámite' });
   }
 });

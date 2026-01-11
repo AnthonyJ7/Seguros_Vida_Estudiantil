@@ -26,8 +26,9 @@ export class SiniestrosComponent implements OnInit {
   creando = false;
   backendMsg = '';
   nuevo = {
-    idEstudiante: '',
-    tipo: 'SINIESTRO',
+    cedulaEstudiante: '',
+    tipoTramite: 'siniestro',
+    motivo: 'Prueba desde siniestros',
     descripcion: ''
   } as any;
   tramiteId = '';
@@ -124,8 +125,9 @@ export class SiniestrosComponent implements OnInit {
     this.backendMsg = '';
     this.creando = true;
     this.tramitesHttp.crearTramite({
-      idEstudiante: this.nuevo.idEstudiante,
-      tipo: this.nuevo.tipo,
+      cedulaEstudiante: this.nuevo.cedulaEstudiante,
+      tipoTramite: this.nuevo.tipoTramite,
+      motivo: this.nuevo.motivo,
       descripcion: this.nuevo.descripcion
     }).subscribe({
       next: (resp: any) => {

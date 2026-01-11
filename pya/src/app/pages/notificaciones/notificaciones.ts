@@ -47,45 +47,11 @@ export class NotificacionesComponent implements OnInit {
         return;
       }
 
-      // Ramas separadas por rol: clientes usan Firestore (idEstudiante), gestores/admin usan API
-      if (this.role && this.role !== 'CLIENTE') {
-        const notisApi = await firstValueFrom(this.notifHttp.noLeidas());
-        this.notificaciones = (notisApi || []).sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime());
-        this.cargando = false;
-        this.cdr.markForCheck();
-        return;
-      }
-
-      // Timeout de 5 segundos
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout cargando notificaciones')), 5000)
+      // Todos los roles usan el backend API que filtra por UID
+      const notisApi = await firstValueFrom(this.notifHttp.misNotificaciones());
+      this.notificaciones = (notisApi || []).sort((a, b) => 
+        this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime()
       );
-
-      // Obtener usuario primero
-      const usuariosPromise = this.firestore.getDocumentsWithCondition('usuarios', 'uid', '==', uid);
-      const usuarios = await Promise.race([usuariosPromise, timeoutPromise]) as any[];
-      const usuario = usuarios[0] || null;
-
-      // Obtener estudiante
-      let estudiantes = [];
-      if (usuario?.idEstudiante) {
-        const estPromise = this.firestore.getDocumentsWithCondition('estudiantes', 'id', '==', usuario.idEstudiante);
-        estudiantes = await Promise.race([estPromise, timeoutPromise]) as any[];
-      } else {
-        const estPromise = this.firestore.getDocumentsWithCondition('estudiantes', 'uidUsuario', '==', uid);
-        estudiantes = await Promise.race([estPromise, timeoutPromise]) as any[];
-      }
-      this.estudiante = estudiantes[0] || null;
-
-      if (!this.estudiante) {
-        this.error = 'No se encontró información del estudiante.';
-        this.cargando = false;
-        return;
-      }
-
-      // Obtener notificaciones
-      const notis = await this.firestore.getDocumentsWithCondition('notificaciones', 'idEstudiante', '==', this.estudiante.id);
-      this.notificaciones = (notis || []).sort((a, b) => this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime());
 
     } catch (error) {
       console.error('Error cargando notificaciones:', error);

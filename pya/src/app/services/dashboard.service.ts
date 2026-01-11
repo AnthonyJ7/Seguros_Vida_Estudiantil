@@ -179,10 +179,10 @@ export class DashboardService {
     try {
       const tramites = await firstValueFrom(this.api.get<any[]>('/tramites')).catch(() => []);
       
-      // Filtrar trámites en validación (EN_VALIDACION) + trámites revisados por aseguradoras (REVISADO_ASEGURADORA)
+      // Filtrar trámites en validación: REGISTRADO (recién creados), EN_VALIDACION y REVISADO_ASEGURADORA
       const tramitesEnValidacion = tramites.filter(t => {
         const estado = (t.estadoCaso || '').toLowerCase();
-        return estado === 'en_validacion' || estado === 'revisado_aseguradora';
+        return estado === 'registrado' || estado === 'en_validacion' || estado === 'revisado_aseguradora';
       });
       const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
       const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
