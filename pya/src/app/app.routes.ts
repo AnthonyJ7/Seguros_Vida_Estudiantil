@@ -16,6 +16,7 @@ import { AuditoriaPage } from './pages/auditoria/auditoria';
 import { UsuariosPage } from './pages/usuarios/usuarios';
 import { PolizasPage } from './pages/polizas/polizas';
 import { InsurerDashComponent } from './pages/insurer-dash/insurer-dash';
+import { HistorialTramitesComponent } from './pages/historial-tramites/historial-tramites';
 import { AccesoDenegadoComponent } from './pages/acceso-denegado/acceso-denegado';
 import { ErrorComponent } from './pages/error/error';
 import { roleGuard } from './services/role.guard';
@@ -38,6 +39,7 @@ export const routes: Routes = [
   { path: 'gestor-dashboard', component: GestorDashComponent, canActivate: [roleGuard], data: { roles: ['GESTOR'] } },
   { path: 'estudiantes', component: EstudiantesPage, canActivate: [roleGuard], data: { roles: ['GESTOR', 'ADMIN'] } },
   { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { roles: ['GESTOR', 'ADMIN'] } },
+  { path: 'historial-tramites', component: HistorialTramitesComponent, canActivate: [roleGuard], data: { roles: ['GESTOR', 'ADMIN'] } },
   
   // Admin Routes
   { path: 'admin-dashboard', component: AdminDashComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },

@@ -11,6 +11,17 @@ import { DocumentosRepository } from '../../infrastructure/repositories/document
 import { Beneficiario } from '../../domain/beneficiario';
 import { Documento } from '../../domain/documento';
 
+// Función auxiliar para limpiar valores undefined de objetos
+function limpiarUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+  const limpio: any = {};
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      limpio[key] = obj[key];
+    }
+  }
+  return limpio;
+}
+
 interface CrearTramiteDTO {
   cedulaEstudiante: string;
   tipoTramite: TipoTramite;
@@ -246,10 +257,13 @@ export class TramiteService {
     const tramite = await this.repo.obtenerPorId(id);
     if (!tramite) throw new Error('Trámite no encontrado');
 
-    const respuestaAseguradora = {
+    // Limpiar undefined del resultado antes de crear respuestaAseguradora
+    const respuestaAseguradora = limpiarUndefined({
       fecha: new Date(),
-      ...resultado
-    };
+      aprobado: resultado.aprobado,
+      montoAprobado: resultado.montoAprobado,
+      observaciones: resultado.observaciones
+    });
 
     let nuevoEstado: EstadoCaso;
     if (resultado.aprobado) {
@@ -262,11 +276,17 @@ export class TramiteService {
 
     await this.repo.cambiarEstado(id, nuevoEstado, actorUid, rol, resultado.observaciones);
     
-    await this.repo.actualizar(id, { 
+    // Limpiar undefined de los datos de actualización
+    const datosActualizacion: any = {
       respuestaAseguradora,
-      montoAprobado: resultado.montoAprobado,
-      fechaCierre: nuevoEstado === EstadoCaso.RECHAZADO ? new Date() : undefined
-    });
+      montoAprobado: resultado.montoAprobado
+    };
+    
+    if (nuevoEstado === EstadoCaso.RECHAZADO) {
+      datosActualizacion.fechaCierre = new Date();
+    }
+    
+    await this.repo.actualizar(id, limpiarUndefined(datosActualizacion));
 
     await this.auditoriaRepo.registrar({
       accion: 'RESULTADO_ASEGURADORA',

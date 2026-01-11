@@ -12,6 +12,10 @@ export class DocumentosHttpService {
     return this.api.get<any[]>('/documentos');
   }
 
+  listarPorTramite(tramiteId: string) {
+    return this.api.get<any[]>(`/documentos/tramite/${tramiteId}`);
+  }
+
   subirArchivo(idTramite: string, file: File, tipo: string) {
     const form = new FormData();
     form.append('archivo', file);

@@ -187,7 +187,7 @@ export class DashboardService {
       const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
       const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
       const notificaciones = await firstValueFrom(this.api.get<any[]>('/notificaciones/no-leidas')).catch(() => []);
-      const estudiantesActivos = estudiantes.filter(e => e.estadoAcademico === 'ACTIVO').length;
+      const estudiantesActivos = estudiantes.filter(e => (e.estadoAcademico || '').toLowerCase() === 'activo').length;
 
       // Contar trámites de hoy
       const hoy = new Date();

@@ -16,9 +16,10 @@
       <tr *ngFor="let doc of documentos">
         <td class="py-2 px-4">{{ doc.nombreArchivo }}</td>
         <td class="py-2 px-4">{{ doc.tipo }}</td>
-        <td class="py-2 px-4">{{ doc.fechaCarga | date:'short' }}</td>
+        <td class="py-2 px-4">{{ doc.fechaCarga || doc.fechaSubida | date:'short' }}</td>
         <td class="py-2 px-4">
-          <a [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline">Ver/Descargar</a>
+          <a *ngIf="doc.url" [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline">Ver/Descargar</a>
+          <span *ngIf="!doc.url" class="text-slate-400 text-sm">Sin enlace</span>
         </td>
       </tr>
     </tbody>

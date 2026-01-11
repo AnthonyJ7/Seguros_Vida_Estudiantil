@@ -40,7 +40,24 @@ export class DocumentosRepository {
   }
 
   async obtenerPorTramite(tramiteId: string): Promise<Documento[]> {
+    console.log('[documentos.repo] Buscando documentos con tramiteId ==', tramiteId);
     const snapshot = await this.collection.where('tramiteId', '==', tramiteId).get();
+    console.log('[documentos.repo] Encontrados', snapshot.size, 'documentos');
+    const docs = snapshot.docs.map(doc => {
+      const data = doc.data();
+      console.log('[documentos.repo] Doc encontrado:', {
+        id: doc.id,
+        tramiteId: data.tramiteId,
+        nombreArchivo: data.nombreArchivo,
+        tipo: data.tipo
+      });
+      return { idDocumento: doc.id, ...data } as Documento;
+    });
+    return docs;
+  }
+
+  async obtenerTodos(): Promise<Documento[]> {
+    const snapshot = await this.collection.orderBy('fechaSubida', 'desc').get();
     return snapshot.docs.map(doc => ({ idDocumento: doc.id, ...doc.data() } as Documento));
   }
 

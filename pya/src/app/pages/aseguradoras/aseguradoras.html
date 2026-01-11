@@ -154,40 +154,78 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let tramite of tramitesPendientes" class="border-b border-slate-100 hover:bg-slate-50">
-            <td class="py-4 px-6 font-mono font-bold text-indigo-600">{{ tramite.codigoUnico || tramite.id }}</td>
-            <td class="py-4 px-6">
-              <div *ngIf="tramite.estudiante">
-                <p class="font-bold text-slate-800">{{ tramite.estudiante.nombreCompleto }}</p>
-                <p class="text-xs text-slate-500">{{ tramite.estudiante.cedula }}</p>
-              </div>
-              <span *ngIf="!tramite.estudiante" class="text-slate-400">N/A</span>
-            </td>
-            <td class="py-4 px-6">
-              <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
-                {{ getTipoLabel(tramite.tipoTramite) }}
-              </span>
-            </td>
-            <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.descripcion || 'Sin descripción' }}</td>
-            <td class="py-4 px-6 text-center">
-              <span [class]="'px-3 py-1 rounded-lg text-xs font-bold ' + getEstadoColor(tramite.estadoCaso)">
-                {{ tramite.estadoCaso.toUpperCase() || 'N/A' }}
-              </span>
-            </td>
-            <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.fechaRegistro | date:'short' }}</td>
-            <td class="py-4 px-6">
-              <div class="flex gap-2 justify-center">
-                <button (click)="aprobarTramite(tramite)"
-                        class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all text-sm">
-                  ✓ Listo para Aprobar
-                </button>
-                <button (click)="abrirModalRechazo(tramite)"
-                        class="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all text-sm">
-                  ⚠️ Requiere Correcciones
-                </button>
-              </div>
-            </td>
-          </tr>
+          <ng-container *ngFor="let tramite of tramitesPendientes; trackBy: trackByTramiteId">
+            <tr class="border-b border-slate-100 hover:bg-slate-50">
+              <td class="py-4 px-6 font-mono font-bold text-indigo-600">{{ tramite.codigoUnico || tramite.id }}</td>
+              <td class="py-4 px-6">
+                <div *ngIf="tramite.estudiante">
+                  <p class="font-bold text-slate-800">{{ tramite.estudiante.nombreCompleto }}</p>
+                  <p class="text-xs text-slate-500">{{ tramite.estudiante.cedula }}</p>
+                </div>
+                <span *ngIf="!tramite.estudiante" class="text-slate-400">N/A</span>
+              </td>
+              <td class="py-4 px-6">
+                <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
+                  {{ getTipoLabel(tramite.tipoTramite) }}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.descripcion || 'Sin descripción' }}</td>
+              <td class="py-4 px-6 text-center">
+                <span [class]="'px-3 py-1 rounded-lg text-xs font-bold ' + getEstadoColor(tramite.estadoCaso)">
+                  {{ tramite.estadoCaso.toUpperCase() || 'N/A' }}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.fechaRegistro | date:'short' }}</td>
+              <td class="py-4 px-6">
+                <div class="flex gap-2 justify-center">
+                  <button (click)="aprobarTramite(tramite)"
+                          class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all text-sm">
+                    ✓ Listo para Aprobar
+                  </button>
+                  <button (click)="abrirModalRechazo(tramite)"
+                          class="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all text-sm">
+                    ⚠️ Requiere Correcciones
+                  </button>
+                  <button (click)="toggleDocumentos(tramite)"
+                          class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition-all text-sm">
+                    📄 {{ documentosVisibles[tramite.id] ? 'Ocultar' : 'Ver' }} Documentos
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="documentosVisibles[tramite.id]">
+              <td [attr.colspan]="7" class="bg-slate-50 px-6 py-4">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-black text-slate-700">Documentos del trámite {{ tramite.codigoUnico || tramite.id }}</h4>
+                  <span *ngIf="documentosCargandoId === tramite.id" class="text-xs text-slate-500">Cargando...</span>
+                </div>
+                <div *ngIf="(documentosPorTramite[tramite.id] || []).length === 0 && documentosCargandoId !== tramite.id" class="text-xs text-slate-500">No hay documentos.</div>
+                <div *ngIf="(documentosPorTramite[tramite.id] || []).length > 0" class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="bg-slate-100">
+                        <th class="text-left py-2 px-3 font-bold text-slate-700">Tipo</th>
+                        <th class="text-left py-2 px-3 font-bold text-slate-700">Nombre</th>
+                        <th class="text-left py-2 px-3 font-bold text-slate-700">Fecha</th>
+                        <th class="text-left py-2 px-3 font-bold text-slate-700">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let doc of documentosPorTramite[tramite.id]" class="border-b border-slate-200">
+                        <td class="py-2 px-3">{{ doc.tipo || 'N/A' }}</td>
+                        <td class="py-2 px-3">{{ doc.nombreArchivo }}</td>
+                        <td class="py-2 px-3">{{ doc.fechaCarga | date:'short' }}</td>
+                        <td class="py-2 px-3">
+                          <a *ngIf="doc.url" [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline font-semibold">Ver/Descargar</a>
+                          <span *ngIf="!doc.url" class="text-slate-400">Sin enlace</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>
@@ -228,44 +266,86 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let tramite of tramitesHistorial" class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-4 px-6 font-mono font-bold text-indigo-600">{{ tramite.codigoUnico || tramite.id }}</td>
-              <td class="py-4 px-6">
-                <div *ngIf="tramite.estudiante">
-                  <p class="font-bold text-slate-800">{{ tramite.estudiante.nombreCompleto }}</p>
-                  <p class="text-xs text-slate-500">{{ tramite.estudiante.cedula }}</p>
-                </div>
-                <span *ngIf="!tramite.estudiante" class="text-slate-400">N/A</span>
-              </td>
-              <td class="py-4 px-6">
-                <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
-                  {{ getTipoLabel(tramite.tipoTramite) }}
-                </span>
-              </td>
-              <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.descripcion || 'Sin descripción' }}</td>
-              <td class="py-4 px-6 text-center">
-                <span [class]="'px-3 py-1 rounded-lg text-xs font-bold ' + getEstadoColor(tramite.estadoCaso)">
-                  {{ tramite.estadoCaso.toUpperCase() || 'N/A' }}
-                </span>
-              </td>
-              <td class="py-4 px-6 text-sm text-slate-600">
-                {{ (tramite.fechaRevisionAseguradora || tramite.fechaAprobacion || tramite.fechaRechazo) | date:'short' }}
-              </td>
-              <td class="py-4 px-6 text-sm text-slate-600">
-                <span *ngIf="tramite.motivoRevisionAseguradora" class="text-orange-600 font-semibold">
-                  {{ tramite.motivoRevisionAseguradora }}
-                </span>
-                <span *ngIf="!tramite.motivoRevisionAseguradora && tramite.estadoCaso.toLowerCase().includes('revisado')" class="text-blue-600 font-semibold">
-                  ✓ En espera de gestor
-                </span>
-                <span *ngIf="tramite.motivoRechazo && !tramite.motivoRevisionAseguradora" class="text-red-600 font-semibold">
-                  {{ tramite.motivoRechazo }}
-                </span>
-                <span *ngIf="!tramite.motivoRechazo && !tramite.motivoRevisionAseguradora && tramite.estadoCaso.toLowerCase().includes('aprobado')" class="text-emerald-600 font-semibold">
-                  Aprobado
-                </span>
-              </td>
-            </tr>
+            <ng-container *ngFor="let tramite of tramitesHistorial; trackBy: trackByTramiteId">
+              <tr class="border-b border-slate-100 hover:bg-slate-50">
+                <td class="py-4 px-6 font-mono font-bold text-indigo-600">{{ tramite.codigoUnico || tramite.id }}</td>
+                <td class="py-4 px-6">
+                  <div *ngIf="tramite.estudiante">
+                    <p class="font-bold text-slate-800">{{ tramite.estudiante.nombreCompleto }}</p>
+                    <p class="text-xs text-slate-500">{{ tramite.estudiante.cedula }}</p>
+                  </div>
+                  <span *ngIf="!tramite.estudiante" class="text-slate-400">N/A</span>
+                </td>
+                <td class="py-4 px-6">
+                  <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
+                    {{ getTipoLabel(tramite.tipoTramite) }}
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">{{ tramite.descripcion || 'Sin descripción' }}</td>
+                <td class="py-4 px-6 text-center">
+                  <span [class]="'px-3 py-1 rounded-lg text-xs font-bold ' + getEstadoColor(tramite.estadoCaso)">
+                    {{ tramite.estadoCaso.toUpperCase() || 'N/A' }}
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">
+                  {{ (tramite.fechaRevisionAseguradora || tramite.fechaAprobacion || tramite.fechaRechazo) | date:'short' }}
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">
+                  <span *ngIf="tramite.motivoRevisionAseguradora" class="text-orange-600 font-semibold">
+                    {{ tramite.motivoRevisionAseguradora }}
+                  </span>
+                  <span *ngIf="!tramite.motivoRevisionAseguradora && tramite.estadoCaso.toLowerCase().includes('revisado')" class="text-blue-600 font-semibold">
+                    ✓ En espera de gestor
+                  </span>
+                  <span *ngIf="tramite.motivoRechazo && !tramite.motivoRevisionAseguradora" class="text-red-600 font-semibold">
+                    {{ tramite.motivoRechazo }}
+                  </span>
+                  <span *ngIf="!tramite.motivoRechazo && !tramite.motivoRevisionAseguradora && tramite.estadoCaso.toLowerCase().includes('aprobado')" class="text-emerald-600 font-semibold">
+                    Aprobado
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td [attr.colspan]="7" class="px-6 py-2">
+                  <button (click)="toggleDocumentos(tramite)"
+                          class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-all text-xs">
+                    📄 {{ documentosVisibles[tramite.id] ? 'Ocultar' : 'Ver' }} Documentos
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="documentosVisibles[tramite.id]">
+                <td [attr.colspan]="7" class="bg-slate-50 px-6 py-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-black text-slate-700">Documentos del trámite {{ tramite.codigoUnico || tramite.id }}</h4>
+                    <span *ngIf="documentosCargandoId === tramite.id" class="text-xs text-slate-500">Cargando...</span>
+                  </div>
+                  <div *ngIf="(documentosPorTramite[tramite.id] || []).length === 0 && documentosCargandoId !== tramite.id" class="text-xs text-slate-500">No hay documentos.</div>
+                  <div *ngIf="(documentosPorTramite[tramite.id] || []).length > 0" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-slate-100">
+                          <th class="text-left py-2 px-3 font-bold text-slate-700">Tipo</th>
+                          <th class="text-left py-2 px-3 font-bold text-slate-700">Nombre</th>
+                          <th class="text-left py-2 px-3 font-bold text-slate-700">Fecha</th>
+                          <th class="text-left py-2 px-3 font-bold text-slate-700">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let doc of documentosPorTramite[tramite.id]" class="border-b border-slate-200">
+                          <td class="py-2 px-3">{{ doc.tipo || 'N/A' }}</td>
+                          <td class="py-2 px-3">{{ doc.nombreArchivo }}</td>
+                          <td class="py-2 px-3">{{ doc.fechaCarga | date:'short' }}</td>
+                          <td class="py-2 px-3">
+                            <a *ngIf="doc.url" [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline font-semibold">Ver/Descargar</a>
+                            <span *ngIf="!doc.url" class="text-slate-400">Sin enlace</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
           </tbody>
         </table>
       </div>

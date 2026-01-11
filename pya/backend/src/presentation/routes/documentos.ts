@@ -7,6 +7,7 @@ import { db } from '../../config/firebase';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import mime from 'mime-types';
 
 const documentosRouter = Router();
 const repo = new DocumentosRepository();
@@ -46,8 +47,34 @@ const upload = multer({
 // Listar documentos (GET /api/documentos)
 documentosRouter.get('/', verifyToken, async (req: RequestWithUser, res: Response) => {
   try {
-    // Retornar array vacío por ahora (se filtra en frontend si es cliente)
-    res.json([]);
+    const rol = (req.user?.rol || '').toUpperCase();
+    // Solo gestores y admin ven todo. Clientes podrían filtrarse por trámite (pendiente de implementar si se requiere)
+    if (rol !== 'GESTOR' && rol !== 'ADMIN') {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    const docs = await repo.obtenerTodos();
+
+    const toIso = (v: any) => {
+      if (!v) return undefined;
+      if (v instanceof Date) return v.toISOString();
+      if (v._seconds) return new Date(v._seconds * 1000).toISOString();
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? undefined : d.toISOString();
+    };
+
+    const payload = docs.map(d => ({
+      idDocumento: (d as any).idDocumento,
+      tramiteId: d.tramiteId,
+      tipo: d.tipo,
+      nombreArchivo: d.nombreArchivo,
+      descripcion: (d as any).descripcion,
+      url: (d as any).urlArchivo || (d as any).url,
+      fechaCarga: toIso((d as any).fechaCarga || (d as any).fechaSubida),
+      validado: (d as any).validado || false
+    }));
+
+    res.json(payload);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'No se pudieron listar documentos' });
   }
@@ -70,8 +97,8 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
 
     console.log(`[documentos] Subiendo archivo: ${req.file.originalname} para trámite ${tramiteId}`);
 
-    // Subir a Firebase Storage
-    const urlArchivo = await repo.subirArchivo(req.file.path, tramiteId);
+    // Guardar archivo y exponer endpoint de descarga
+    const urlArchivo = `${process.env.API_BASE_URL || 'http://localhost:4000/api'}/documentos/${tramiteId}/descargar/${req.file.filename}`;
 
     // Crear registro en Firestore
     const documento = await repo.crear({
@@ -81,8 +108,9 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
       urlArchivo,
       descripcion: descripcion || '',
       fechaSubida: new Date(),
-      validado: false
-    });
+      validado: false,
+      rutaLocal: req.file.path
+    } as any);
 
     console.log(`[documentos] Documento registrado: ${documento.idDocumento}`);
 
@@ -139,23 +167,92 @@ documentosRouter.post('/upload', verifyToken, upload.single('archivo'), async (r
     console.error('[documentos] Error en upload:', err);
     res.status(500).json({ error: err.message || 'Error al subir documento' });
   } finally {
-    // Limpiar archivo temporal en cualquier caso
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        fs.unlinkSync(tempFilePath);
-      } catch (e) {
-        console.warn('[documentos] No se pudo limpiar archivo temporal:', tempFilePath);
-      }
+  }
+});
+
+// Descargar archivo por filename (se guardó en uploads)
+documentosRouter.get('/:tramiteId/descargar/:filename', async (req: RequestWithUser, res: Response) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(uploadDir, filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('Archivo no encontrado');
     }
+    const mimeType = mime.lookup(filePath) || 'application/octet-stream';
+    res.setHeader('Content-Type', mimeType as string);
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    fs.createReadStream(filePath).pipe(res);
+  } catch (err: any) {
+    console.error('[documentos] Error descargando archivo:', err);
+    res.status(500).send('Error al descargar archivo');
   }
 });
 
 // Obtener documentos de un trámite
 documentosRouter.get('/tramite/:tramiteId', verifyToken, async (req: RequestWithUser, res: Response) => {
   try {
-    const documentos = await repo.obtenerPorTramite(req.params.tramiteId);
-    res.json(documentos);
+    const tramiteId = req.params.tramiteId;
+    console.log('[documentos] GET /tramite/:tramiteId - Buscando documentos para tramiteId:', tramiteId);
+    
+    const documentos = await repo.obtenerPorTramite(tramiteId);
+    console.log('[documentos] Documentos encontrados:', documentos.length);
+    
+    if (documentos.length > 0) {
+      console.log('[documentos] Detalles documentos:', documentos.map(d => ({
+        id: (d as any).idDocumento,
+        tramiteId: (d as any).tramiteId,
+        nombre: (d as any).nombreArchivo,
+        tipo: (d as any).tipo
+      })));
+    }
+    
+    // Normalizar URLs para que apunten al endpoint de descarga del backend
+    const apiBase = process.env.API_BASE_URL || 'http://localhost:4000/api';
+    const toIso = (v: any) => {
+      if (!v) return undefined;
+      if (v instanceof Date) return v.toISOString();
+      if (v._seconds) return new Date(v._seconds * 1000).toISOString();
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? undefined : d.toISOString();
+    };
+    
+    const normalized = documentos.map(doc => {
+      const d = doc as any;
+      // Extraer filename del rutaLocal o del urlArchivo existente
+      let filename = '';
+      if (d.rutaLocal) {
+        filename = d.rutaLocal.split(/[/\\]/).pop() || '';
+      } else if (d.urlArchivo && d.urlArchivo.includes('/descargar/')) {
+        filename = d.urlArchivo.split('/descargar/').pop() || '';
+      }
+      
+      // IMPORTANTE: Usar el tramiteId del documento, NO del parámetro de la URL
+      const docTramiteId = d.tramiteId || tramiteId;
+      
+      // Construir URL de descarga válida usando el tramiteId correcto
+      const downloadUrl = filename 
+        ? `${apiBase}/documentos/${docTramiteId}/descargar/${filename}`
+        : d.urlArchivo || d.url;
+      
+      console.log('[documentos] Normalizando doc:', d.nombreArchivo, 'tramiteId:', docTramiteId, 'filename:', filename, 'url:', downloadUrl);
+      
+      return {
+        idDocumento: d.idDocumento || d.id,
+        tramiteId: docTramiteId,
+        tipo: d.tipo,
+        nombreArchivo: d.nombreArchivo || 'Documento',
+        descripcion: d.descripcion,
+        url: downloadUrl,
+        urlArchivo: downloadUrl,
+        fechaCarga: toIso(d.fechaCarga || d.fechaSubida),
+        validado: !!d.validado
+      };
+    });
+    
+    console.log('[documentos] Enviando', normalized.length, 'documentos normalizados');
+    res.json(normalized);
   } catch (err: any) {
+    console.error('[documentos] Error en GET /tramite/:tramiteId:', err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -41,7 +41,23 @@ class DocumentosRepository {
         await this.collection.doc(idDocumento).update({ validado: true });
     }
     async obtenerPorTramite(tramiteId) {
+        console.log('[documentos.repo] Buscando documentos con tramiteId ==', tramiteId);
         const snapshot = await this.collection.where('tramiteId', '==', tramiteId).get();
+        console.log('[documentos.repo] Encontrados', snapshot.size, 'documentos');
+        const docs = snapshot.docs.map(doc => {
+            const data = doc.data();
+            console.log('[documentos.repo] Doc encontrado:', {
+                id: doc.id,
+                tramiteId: data.tramiteId,
+                nombreArchivo: data.nombreArchivo,
+                tipo: data.tipo
+            });
+            return { idDocumento: doc.id, ...data };
+        });
+        return docs;
+    }
+    async obtenerTodos() {
+        const snapshot = await this.collection.orderBy('fechaSubida', 'desc').get();
         return snapshot.docs.map(doc => ({ idDocumento: doc.id, ...doc.data() }));
     }
     async eliminar(idDocumento) {
@@ -59,18 +75,38 @@ class DocumentosRepository {
         await this.collection.doc(idDocumento).delete();
     }
     // Método para subir archivo a Storage (acepta ruta local del archivo temporal)
+    // NOTA: Firebase Storage es un servicio de pago. Por ahora usamos URLs mock.
+    // Para activar Storage real en el futuro:
+    // 1. Habilitar Cloud Storage en Firebase Console
+    // 2. Descomentar el código con storage.googleapis.com
+    // 3. Asegurar que FIREBASE_STORAGE_BUCKET esté configurado en .env
     async subirArchivo(localFilePath, tramiteId) {
-        const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
-        const bucket = this.getBucket();
-        const fileUpload = bucket.file(fileName);
-        await bucket.upload(localFilePath, {
-            destination: fileName,
-            metadata: {
+        try {
+            const fs = require('fs');
+            const fileName = `tramites/${tramiteId}/${Date.now()}_${localFilePath.split('/').pop()}`;
+            // MOCK: Generar URL simulada (sin Storage real)
+            const mockUrl = `https://storage.mock.local/${fileName}`;
+            console.log(`[documentos.repo] Mock URL: ${mockUrl}`);
+            // TODO: Reemplazar con código real cuando Storage esté habilitado:
+            /*
+            const bucket = this.getBucket();
+            const fileUpload = bucket.file(fileName);
+            await fileUpload.save(fs.readFileSync(localFilePath), {
+              metadata: {
                 cacheControl: 'public, max-age=31536000'
-            }
-        });
-        await fileUpload.makePublic();
-        return fileUpload.publicUrl();
+              }
+            });
+            await fileUpload.makePublic();
+            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+            console.log(`[documentos.repo] Archivo subido: ${publicUrl}`);
+            return publicUrl;
+            */
+            return mockUrl;
+        }
+        catch (error) {
+            console.error('[documentos.repo] Error subiendo archivo:', error);
+            throw new Error(`Error subiendo archivo: ${error.message}`);
+        }
     }
 }
 exports.DocumentosRepository = DocumentosRepository;

@@ -21,6 +21,7 @@ export class GestorDashComponent implements OnInit {
   selectedTramite: any | null = null;
   procesandoId: string | null = null;
   marcandoNotificacionId: string | null = null;
+  notificacionesColapsadas = true; // Colapsadas por defecto
   
   // Carga de documentos
   documentoSeleccionado = {
@@ -113,10 +114,18 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = this.selectedTramite.id || this.selectedTramite.codigoUnico;
+    // IMPORTANTE: Usar el ID de Firestore del trámite, NO el codigoUnico
+    const tramiteId = this.selectedTramite.id;
+    
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: El trámite no tiene ID de Firestore', this.selectedTramite);
+      alert('Error: El trámite seleccionado no tiene un ID válido');
+      return;
+    }
+    
     this.subiendo = true;
 
-    console.log(`[gestor-dash] Subiendo documento tipo=${this.documentoSeleccionado.tipo} para tramite=${tramiteId}`);
+    console.log(`[gestor-dash] Subiendo documento tipo=${this.documentoSeleccionado.tipo} para tramite ID=${tramiteId}, codigo=${this.selectedTramite.codigoUnico}`);
 
     this.documentosHttp.subirArchivo(tramiteId, this.documentoSeleccionado.archivo, this.documentoSeleccionado.tipo).subscribe({
       next: () => {
@@ -126,7 +135,7 @@ export class GestorDashComponent implements OnInit {
         this.subiendo = false;
         // Reabrir modal con datos actualizados
         const tramiteActualizado = this.datosGestor?.tramitesEnValidacion.find(
-          t => (t.id || t.codigoUnico) === tramiteId
+          t => t.id === tramiteId
         );
         if (tramiteActualizado) {
           this.selectedTramite = tramiteActualizado;
@@ -141,7 +150,12 @@ export class GestorDashComponent implements OnInit {
   }
 
   validar(tramite: any) {
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.validarTramite(tramiteId).subscribe({
@@ -165,7 +179,12 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.aprobarTramite(tramiteId, Number(montoAprobado)).subscribe({
@@ -190,7 +209,12 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.solicitarCorrecciones(tramiteId, descripcion).subscribe({

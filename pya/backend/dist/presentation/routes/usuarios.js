@@ -9,17 +9,24 @@ exports.usuariosRouter = (0, express_1.Router)();
 // GET /api/usuarios/me - Perfil del usuario autenticado
 exports.usuariosRouter.get('/me', auth_1.verifyToken, async (req, res) => {
     try {
+        if (!req.user) {
+            console.error('[usuarios/me] req.user is undefined');
+            return res.status(401).json({ error: 'Usuario no autenticado' });
+        }
         const uid = req.user.uid;
+        console.log('[usuarios/me] Obteniendo perfil para uid:', uid);
         const snap = await firebase_1.firestore.collection('usuarios').where('uid', '==', uid).limit(1).get();
         if (snap.empty) {
             // Retornar stub para evitar 404 en UI cuando el perfil aún no está creado
+            console.log('[usuarios/me] Usuario no encontrado en BD, retornando stub');
             return res.json({ uid, mensaje: 'Perfil no encontrado en BD', rol: req.user?.rol || 'ADMIN' });
         }
         const doc = snap.docs[0];
         res.json({ id: doc.id, ...doc.data() });
     }
     catch (err) {
-        res.status(500).json({ error: 'Error obteniendo perfil de usuario' });
+        console.error('[usuarios/me] Error:', err?.message || err);
+        res.status(500).json({ error: 'Error obteniendo perfil de usuario', details: err?.message });
     }
 });
 // POST /api/usuarios/create-admin - Crear usuario en Firebase (solo para setup)
