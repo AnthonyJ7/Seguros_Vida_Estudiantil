@@ -61,6 +61,26 @@ export class TramiteService {
     // 3. Crear trámite
     const codigoUnico = `TR-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     
+    // 3.1. Asignar automáticamente la primera aseguradora disponible
+    let aseguradoraAsignada = null;
+    try {
+      const db = require('../../config/firebase').firestore;
+      const aseguradorasSnapshot = await db.collection('aseguradoras').limit(1).get();
+      if (!aseguradorasSnapshot.empty) {
+        const primeraAseg = aseguradorasSnapshot.docs[0].data();
+        aseguradoraAsignada = {
+          idAseguradora: aseguradorasSnapshot.docs[0].id,
+          nombre: primeraAseg.nombre || 'Aseguradora Principal',
+          correoContacto: primeraAseg.correoContacto || primeraAseg.email || ''
+        };
+        console.log('[TramiteService] Aseguradora asignada:', aseguradoraAsignada);
+      } else {
+        console.warn('[TramiteService] No hay aseguradoras disponibles en Firestore');
+      }
+    } catch (asegErr) {
+      console.error('[TramiteService] Error asignando aseguradora:', asegErr);
+    }
+    
     const tramite: Omit<Tramite, 'id'> = {
       codigoUnico,
       idTramite: codigoUnico,
@@ -71,6 +91,7 @@ export class TramiteService {
       motivo: dto.motivo,
       descripcion: dto.descripcion,
       documentos: [],
+      aseguradora: aseguradoraAsignada || undefined,
       historial: [{
         estadoAnterior: EstadoCaso.BORRADOR,
         estadoNuevo: EstadoCaso.REGISTRADO,
@@ -98,14 +119,29 @@ export class TramiteService {
 
     const tramiteId = await this.repo.crear(tramite);
 
-    // 5. Generar notificación inicial
+    // 5. Generar notificación inicial al estudiante (usando UID del creador)
     const idNotificacion = await this.notificacionesService.notificarInicio(
       tramiteId,
       codigoUnico,
-      estudiante.cedula // O email si lo tenemos
+      creadoPor // UID del usuario que creó el trámite
     );
 
     await this.repo.actualizar(tramiteId, { notificacionInicial: idNotificacion });
+
+    // 5.1. Notificar al gestor sobre el nuevo trámite
+    try {
+      await this.notificacionesService.crear({
+        tipo: TipoNotificacion.EMAIL,
+        destinatario: this.gestorFallbackUid,
+        mensaje: `Nuevo trámite ${codigoUnico} creado por ${estudiante.nombreCompleto}. Estado: REGISTRADO. Requiere validación.`,
+        tramiteId,
+        leida: false
+      });
+      console.log(`[TramiteService] Notificación enviada al gestor (UID: ${this.gestorFallbackUid})`);
+    } catch (notifError) {
+      console.error('[TramiteService] Error enviando notificación al gestor:', notifError);
+      // No lanzamos el error para no bloquear la creación del trámite
+    }
 
     // 6. Registrar en auditoría
     await this.auditoriaRepo.registrar({
@@ -156,11 +192,12 @@ export class TramiteService {
       detalles: `Trámite validado: ${nuevoEstado}`
     });
 
+    // Notificar al creador del trámite usando su UID
     await this.notificacionesService.notificarCambioEstadoTramite(
       id,
       tramite.codigoUnico,
       nuevoEstado,
-      tramite.estudiante.cedula
+      tramite.creadoPor // UID del creador
     );
 
     return { validaciones, estado: nuevoEstado };
@@ -241,11 +278,12 @@ export class TramiteService {
       detalles: `Resultado: ${nuevoEstado}`
     });
 
+    // Notificar al creador del trámite usando su UID
     await this.notificacionesService.notificarCambioEstadoTramite(
       id,
       tramite.codigoUnico,
       nuevoEstado,
-      tramite.estudiante.cedula
+      tramite.creadoPor
     );
 
     // Notificar también al gestor que llevó el caso (o al gestor por defecto)
@@ -293,11 +331,12 @@ export class TramiteService {
       detalles: `Corrección solicitada: ${descripcion}`
     });
 
+    // Notificar al creador del trámite usando su UID
     await this.notificacionesService.notificarCambioEstadoTramite(
       id,
       tramite.codigoUnico,
       EstadoCaso.CORRECCIONES_PENDIENTES,
-      tramite.estudiante.cedula
+      tramite.creadoPor
     );
 
     return { correccion };
@@ -336,11 +375,12 @@ export class TramiteService {
       detalles: 'Pago confirmado y trámite cerrado'
     });
 
+    // Notificar al creador del trámite usando su UID
     await this.notificacionesService.notificarCambioEstadoTramite(
       id,
       tramite.codigoUnico,
       EstadoCaso.CERRADO,
-      tramite.estudiante.cedula
+      tramite.creadoPor
     );
 
     return { estado: EstadoCaso.CERRADO };
@@ -359,13 +399,21 @@ export class TramiteService {
   }
 
   async listarTramites(params: { rol?: string; uid: string; estudiante?: string }) {
-    const rolUpper = (params.rol || '').toUpperCase();
-    if (rolUpper === 'GESTOR' || rolUpper === 'ADMIN') {
-      // GESTOR y ADMIN ven todos
-      return this.repo.listarTodos();
+    try {
+      const rolUpper = (params.rol || '').toUpperCase();
+      if (rolUpper === 'GESTOR' || rolUpper === 'ADMIN') {
+        // GESTOR y ADMIN ven todos
+        return this.repo.listarTodos();
+      }
+      // CLIENTE solo ve sus propios (por uid creador)
+      console.log('[TramiteService] Listando tramites para uid:', params.uid);
+      const tramites = await this.repo.listarPorCreador(params.uid);
+      console.log('[TramiteService] Tramites encontrados:', tramites.length);
+      return tramites;
+    } catch (error: any) {
+      console.error('[TramiteService] Error listando tramites:', error.message);
+      throw new Error('Error al listar tramites: ' + error.message);
     }
-    // CLIENTE solo ve sus propios (por uid creador)
-    return this.repo.listarPorCreador(params.uid);
   }
 
   async obtenerPorId(id: string) {

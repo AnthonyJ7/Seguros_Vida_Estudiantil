@@ -2,11 +2,14 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
 
+// Payload alineado con el backend (ver TramiteService.crearTramite)
 export interface CrearTramitePayload {
-  idEstudiante: string;
-  tipo: string;
-  descripcion: string;
-  beneficiarios?: any[];
+  cedulaEstudiante: string;
+  tipoTramite: string; // valores esperados: fallecimiento | accidente | siniestro | enfermedad
+  motivo: string;
+  descripcion?: string;
+  beneficiario?: any;
+  medioNotificacionPreferido?: string;
 }
 
 @Injectable({ providedIn: 'root' })

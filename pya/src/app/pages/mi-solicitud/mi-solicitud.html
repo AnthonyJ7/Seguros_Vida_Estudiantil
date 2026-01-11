@@ -22,7 +22,7 @@
     <!-- Crear nuevo trámite -->
     <div class="bg-white rounded-xl shadow p-6 mb-8">
       <h3 class="text-xl font-black text-slate-800 mb-4">Crear Nuevo Trámite</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
         <div>
           <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Seguro</label>
           <select [(ngModel)]="nuevaTramiteForm.tipoSeguro" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -31,18 +31,14 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Aseguradora</label>
-          <select [(ngModel)]="nuevaTramiteForm.idAseguradora" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">Selecciona una aseguradora...</option>
-            <option *ngFor="let aseg of aseguradoras" [value]="aseg.id">{{ aseg.nombre }}</option>
-          </select>
-        </div>
-        <div>
           <button (click)="crearNuevoTramite()" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition">
             ➕ Crear Trámite
           </button>
         </div>
       </div>
+      <p class="text-xs text-slate-500 mt-3">
+        ℹ️ La aseguradora será asignada automáticamente por el sistema
+      </p>
     </div>
 
     <!-- Lista de trámites -->
@@ -58,19 +54,19 @@
               <p class="text-sm font-bold text-slate-500 uppercase">{{ tramite.codigoUnico }}</p>
               <span class="px-3 py-1 rounded-full text-xs font-bold"
                     [ngClass]="{
-                      'bg-amber-100 text-amber-700': (tramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (tramite.estadoCaso | uppercase) === 'PENDIENTE',
+                      'bg-amber-100 text-amber-700': (tramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (tramite.estadoCaso | uppercase) === 'REGISTRADO',
                       'bg-emerald-100 text-emerald-700': (tramite.estadoCaso | uppercase) === 'APROBADO',
                       'bg-red-100 text-red-700': (tramite.estadoCaso | uppercase) === 'RECHAZADO',
                       'bg-slate-100 text-slate-700': !(tramite.estadoCaso | uppercase)
                     }">
-                {{ tramite.estadoCaso || 'Pendiente' }}
+                {{ tramite.estadoCaso || 'registrado' }}
               </span>
             </div>
-            <p class="text-lg font-bold text-slate-800 mb-1">{{ tramite.tipoSeguro }}</p>
+            <p class="text-lg font-bold text-slate-800 mb-1">{{ getTipoTramiteLabel(tramite.tipoTramite) }}</p>
             <p class="text-slate-600 text-sm mb-3">
-              Aseguradora: <strong>{{ tramite.nombreAseguradora || 'Por asignar' }}</strong>
+              Aseguradora: <strong>{{ tramite.aseguradora?.nombre || 'Por asignar' }}</strong>
             </p>
-            <p class="text-slate-500 text-xs">Registrado: {{ tramite.fechaRegistro | firebaseDate:'short' }}</p>
+            <p class="text-slate-500 text-xs">Registrado: {{ formatFecha(tramite.fechaRegistro) }}</p>
           </div>
           <div class="text-right">
             <button (click)="eliminarTramite(tramite); $event.stopPropagation()" 
@@ -102,21 +98,18 @@
     <!-- Estado prominente -->
     <div class="bg-gradient-to-r from-slate-50 to-slate-100 border-l-4 rounded-r-xl p-6 mb-6"
          [ngClass]="{
-           'border-amber-500': (selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'PENDIENTE',
+           'border-amber-500': (selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'REGISTRADO',
            'border-emerald-500': (selectedTramite.estadoCaso | uppercase) === 'APROBADO',
            'border-red-500': (selectedTramite.estadoCaso | uppercase) === 'RECHAZADO'
          }">
       <p class="text-sm font-bold text-slate-500 uppercase mb-2">Estado Actual</p>
       <p class="text-3xl font-black mb-3"
          [ngClass]="{
-           'text-amber-600': (selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'PENDIENTE',
+           'text-amber-600': (selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'REGISTRADO',
            'text-emerald-600': (selectedTramite.estadoCaso | uppercase) === 'APROBADO',
            'text-red-600': (selectedTramite.estadoCaso | uppercase) === 'RECHAZADO'
          }">
-        {{ selectedTramite.estadoCaso || 'Pendiente' }}
-      </p>
-      <p class="text-slate-600 text-sm" *ngIf="selectedTramite.observaciones">
-        <strong>Observaciones:</strong> {{ selectedTramite.observaciones }}
+        {{ selectedTramite.estadoCaso || 'registrado' }}
       </p>
     </div>
 
@@ -131,81 +124,29 @@
       <!-- Fecha de registro -->
       <div class="bg-white rounded-xl shadow p-6">
         <p class="text-xs font-bold text-slate-500 uppercase mb-2">Fecha de Registro</p>
-        <p class="text-lg font-black text-slate-800">{{ selectedTramite.fechaRegistro | firebaseDate:'short' }}</p>
+        <p class="text-lg font-black text-slate-800">{{ formatFecha(selectedTramite.fechaRegistro) }}</p>
       </div>
 
       <!-- Aseguradora -->
       <div class="bg-white rounded-xl shadow p-6">
         <p class="text-xs font-bold text-slate-500 uppercase mb-2">Aseguradora Asignada</p>
-        <p class="text-lg font-black text-slate-800">{{ aseguradora?.nombre || selectedTramite.nombreAseguradora || 'No asignada' }}</p>
+        <p class="text-lg font-black text-slate-800">{{ selectedTramite.aseguradora?.nombre || 'Por asignar' }}</p>
       </div>
 
       <!-- Tipo de seguro -->
       <div class="bg-white rounded-xl shadow p-6">
         <p class="text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Seguro</p>
-        <p class="text-lg font-black text-slate-800">{{ selectedTramite.tipoSeguro || 'No especificado' }}</p>
+        <p class="text-lg font-black text-slate-800">{{ getTipoTramiteLabel(selectedTramite.tipoTramite) }}</p>
       </div>
-    </div>
-
-    <!-- Detalles adicionales -->
-    <div class="bg-white rounded-xl shadow p-6 space-y-4 mb-6">
-      <h3 class="text-lg font-black text-slate-800 mb-4">Detalles del Trámite</h3>
-
-      <div class="border-b pb-4" *ngIf="selectedTramite.montoCobertura">
-        <p class="text-xs font-bold text-slate-500 uppercase mb-1">Monto de Cobertura</p>
-        <p class="text-slate-800">{{ selectedTramite.montoCobertura | currency }}</p>
-      </div>
-
-      <div class="border-b pb-4" *ngIf="selectedTramite.prima">
-        <p class="text-xs font-bold text-slate-500 uppercase mb-1">Prima Mensual</p>
-        <p class="text-slate-800">{{ selectedTramite.prima | currency }}</p>
-      </div>
-
-      <div class="border-b pb-4" *ngIf="selectedTramite.motivoRechazo">
-        <p class="text-xs font-bold text-slate-500 uppercase mb-1">Motivo del Rechazo</p>
-        <p class="text-red-700">{{ selectedTramite.motivoRechazo }}</p>
-      </div>
-
-      <div class="border-b pb-4" *ngIf="selectedTramite.idGestor">
-        <p class="text-xs font-bold text-slate-500 uppercase mb-1">Gestor Asignado</p>
-        <p class="text-slate-800">{{ selectedTramite.nombreGestor || 'No asignado' }}</p>
-      </div>
-
-      <div *ngIf="selectedTramite.fechaAprobacion">
-        <p class="text-xs font-bold text-slate-500 uppercase mb-1">Fecha de Aprobación</p>
-        <p class="text-slate-800">{{ selectedTramite.fechaAprobacion | firebaseDate:'short' }}</p>
-      </div>
-    </div>
-
-    <!-- Próximos pasos -->
-    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-6">
-      <h3 class="font-black text-indigo-900 mb-3">Próximos Pasos</h3>
-      <ul class="space-y-2 text-indigo-800 text-sm">
-        <li *ngIf="(selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'PENDIENTE'">
-          ✓ Asegúrate de subir todos los documentos requeridos
-        </li>
-        <li *ngIf="(selectedTramite.estadoCaso | uppercase) === 'EN_VALIDACION' || (selectedTramite.estadoCaso | uppercase) === 'PENDIENTE'">
-          ✓ Revisa la pestaña "Envío de Documentos" para ver el estado de cada archivo
-        </li>
-        <li *ngIf="(selectedTramite.estadoCaso | uppercase) === 'APROBADO'">
-          ✓ ¡Tu solicitud ha sido aprobada! Te contactaremos con los detalles finales
-        </li>
-        <li *ngIf="(selectedTramite.estadoCaso | uppercase) === 'RECHAZADO'">
-          ✓ Revisa el motivo del rechazo y contacta al gestor si tienes dudas
-        </li>
-      </ul>
     </div>
 
     <!-- Acciones rápidas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <button (click)="volverALista()" class="block px-4 py-3 bg-slate-600 text-white rounded-xl font-bold text-center hover:bg-slate-700 transition">
         ← Volver a la lista
       </button>
       <a routerLink="/envio-documentos" class="block px-4 py-3 bg-slate-800 text-white rounded-xl font-bold text-center hover:bg-slate-900 transition">
         📎 Subir Documentos
-      </a>
-      <a routerLink="/notificaciones" class="block px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold text-center hover:bg-emerald-700 transition">
-        💬 Ver Mensajes
       </a>
     </div>
   </div>
