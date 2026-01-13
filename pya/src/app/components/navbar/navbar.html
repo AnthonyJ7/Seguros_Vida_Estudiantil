@@ -1,261 +1,219 @@
 <aside 
   [class.w-72]="isOpen" 
   [class.w-20]="!isOpen"
-  [class]="roleStyles?.bgColor || 'bg-slate-900'"
-  class="fixed top-0 left-0 h-full text-white z-40 shadow-xl transition-all duration-300 ease-in-out border-r flex flex-col"
-  [ngClass]="roleStyles?.borderColor || 'border-slate-700'">
-  
-  <!-- Header con color dinámico según rol -->
-  <div 
-    class="h-16 flex items-center px-4 overflow-hidden shrink-0 transition-all duration-300"
-    [style.backgroundColor]="getRoleColor()"
-    [style.opacity]="0.9">
-    
+  class="fixed top-0 left-0 h-full text-white z-40 shadow-2xl transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col bg-[#00283d] overflow-hidden"
+  style="will-change: width;"> <div class="h-20 flex items-center px-6 overflow-hidden shrink-0 border-b border-white/5 bg-[#00283d]">
     <button 
       (click)="toggleMenu()" 
-      class="min-w-[40px] h-10 flex items-center justify-center hover:bg-white/20 rounded-lg transition-all active:scale-90">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      [ngClass]="{ 'text-white scale-105': hasActiveSelection, 'text-white': !hasActiveSelection }"
+      class="min-w-[40px] h-10 flex items-center justify-center rounded-md hover:text-[#f8ad03] transition-colors active:scale-90 focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
       </svg>
     </button>
-    
-    <span *ngIf="isOpen" class="ml-4 font-black italic tracking-tighter text-lg whitespace-nowrap drop-shadow-lg">
-      PYA <span class="opacity-80">SEGUROS</span>
-    </span>
-
-    <!-- Badge de notificaciones (oculto para ADMIN) -->
-    <button 
-      *ngIf="isOpen && notificacionesNoLeidas > 0 && userRole !== 'ADMIN'"
-      (click)="toggleNotificaciones()"
-      class="ml-auto relative p-2 hover:bg-white/20 rounded-lg transition-all">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-      <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-        {{ notificacionesNoLeidas }}
-      </span>
-    </button>
+    <h1 *ngIf="isOpen" class="text-white text-3xl font-black italic tracking-tighter ml-10 leading-tight" style="font-style: oblique 14deg;">
+      <span class="block text-white">UTPL</span>
+      <span class="block text-[#f8ad03] -mt-1">SEGUROS</span>
+    </h1>
   </div>
 
-  <!-- Contenido principal -->
-  <div class="flex-grow flex flex-col p-4 overflow-y-auto">
-    
-    <!-- Información del usuario -->
-    <div 
-      class="mb-6 p-4 rounded-2xl border transition-all duration-300"
-      [ngClass]="[roleStyles?.badgeColor, roleStyles?.borderColor]">
-      
-      <div class="flex items-center mb-3">
-        <div 
-          class="min-w-[48px] h-12 flex items-center justify-center rounded-lg font-bold shadow-lg text-2xl"
-          [style.backgroundColor]="getRoleColor()">
-          {{ getRoleIcon() }}
+  <div class="px-4 py-6 min-w-0 overflow-x-hidden">
+    <div class="flex flex-col items-center p-4 transition-all min-w-0" [class.px-2]="!isOpen">
+      <div class="relative group">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center bg-white ring-2 ring-white shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+          <svg class="w-9 h-9" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#00283d">
+            <path d="M12 12c2.485 0 4.5-2.015 4.5-4.5S14.485 3 12 3 7.5 5.015 7.5 7.5 9.515 12 12 12zm0 1.5c-3 0-9 1.5-9 4.5V21h18v-3c0-3-6-4.5-9-4.5z" />
+          </svg>
         </div>
-        
-        <div *ngIf="isOpen" class="ml-3 flex-grow">
-          <p class="text-xs font-black opacity-70 uppercase tracking-widest leading-none mb-1">
-            {{ roleConfig?.nivel }}
-          </p>
-          <p class="font-bold text-sm">{{ roleConfig?.nombre }}</p>
-          <p class="text-xs opacity-75 mt-1">{{ userName }}</p>
-        </div>
+        <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-[#00283d] rounded-full shadow-sm"></div>
       </div>
       
-      <div *ngIf="isOpen" class="text-xs leading-relaxed opacity-80">
-        {{ roleConfig?.descripcion }}
+      <div *ngIf="isOpen" class="mt-4 text-center">
+        <p class="text-[12px] font-semibold uppercase tracking-widest">Perfil</p>
       </div>
     </div>
-
-    <!-- Navegación por rol -->
-    <nav class="flex-grow space-y-2">
-      
-      <!-- CLIENTE: Acceso básico -->
-      <div *ngIf="userRole === 'CLIENTE'" class="space-y-2">
-        <a 
-          *ngIf="canAccess('dashboard')"
-          routerLink="/cliente-inicio" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📊</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Inicio</span>
-        </a>
-
-        <a 
-          routerLink="/mi-solicitud" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Mis Trámites</span>
-        </a>
-
-        <a 
-          routerLink="/notificaciones" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group relative">
-          <span class="text-2xl min-w-[32px]">🔔</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Notificaciones</span>
-          <span *ngIf="notificacionesNoLeidas > 0" class="absolute top-2 left-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">{{notificacionesNoLeidas}}</span>
-        </a>
-      </div>
-
-      <!-- GESTOR: Gestión administrativa -->
-      <div *ngIf="userRole === 'GESTOR'" class="space-y-2">
-        <a 
-          *ngIf="canAccess('dashboard')"
-          routerLink="/gestor-dashboard" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📊</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Control</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('estudiantes')"
-          routerLink="/estudiantes" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">👨‍🎓</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Estudiantes</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('documentos')"
-          routerLink="/documentos" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📁</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Documentos</span>
-        </a>
-
-        <a 
-          routerLink="/historial-tramites" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Historial</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('auditoria')"
-          routerLink="/auditoria" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📈</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Reportes</span>
-        </a>
-
-        <a 
-          routerLink="/notificaciones" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group relative">
-          <span class="text-2xl min-w-[32px]">🔔</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Notificaciones</span>
-          <span *ngIf="notificacionesNoLeidas > 0" class="absolute top-2 left-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">{{notificacionesNoLeidas}}</span>
-        </a>
-      </div>
-
-      <!-- ADMIN: Control total (sin notificaciones) -->
-      <div *ngIf="userRole === 'ADMIN'" class="space-y-2">
-        <a 
-          *ngIf="canAccess('dashboard')"
-          routerLink="/admin-dashboard" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">🎛️</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Control Total</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('usuarios')"
-          routerLink="/usuarios" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">👥</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Usuarios</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('estudiantes')"
-          routerLink="/estudiantes" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">👨‍🎓</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Estudiantes</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('aseguradoras')"
-          routerLink="/aseguradoras" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">🏢</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Aseguradoras</span>
-        </a>
-
-        <a 
-          routerLink="/historial-tramites" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">📋</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Historial</span>
-        </a>
-
-        <a 
-          *ngIf="canAccess('auditoria')"
-          routerLink="/auditoria" 
-          routerLinkActive="opacity-100 scale-105" 
-          class="flex items-center p-3 rounded-xl hover:bg-white/10 transition-all opacity-75 cursor-pointer group">
-          <span class="text-2xl min-w-[32px]">🔍</span>
-          <span *ngIf="isOpen" class="ml-3 font-bold text-sm">Auditoría</span>
-        </a>
-
-        <!-- Notificaciones removidas para ADMIN -->
-      </div>
-
-    </nav>
-
-    <!-- Separador -->
-    <div class="my-4 h-px bg-white/10"></div>
-
   </div>
 
-  <!-- Footer con botón de logout -->
-  <div class="p-4 border-t border-white/10">
+  <nav class="flex-grow px-3 space-y-1 overflow-y-auto custom-scrollbar min-w-0 overflow-x-hidden">
+    
+    <div *ngIf="userRole === 'CLIENTE'" class="space-y-2">
+      <a 
+        *ngIf="canAccess('dashboard')"
+        routerLink="/cliente-inicio" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03]transition-all opacity-100 cursor-pointer group">
+        <svg class="w-8 h-8 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9.75L12 3l9 6.75V19.5A2.25 2.25 0 0118.75 21H5.25A2.25 2.25 0 013 19.5V9.75z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Inicio</span>
+      </a>
+
+      <a 
+        routerLink="/mi-solicitud" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-8 h-8 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Mis Trámites</span>
+      </a>
+
+      <a 
+        routerLink="/notificaciones" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group relative">
+        <svg class="w-8 h-8 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Notificaciones</span>
+        <span *ngIf="notificacionesNoLeidas > 0" class="absolute top-2 left-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold transition-colors duration-150 group-hover:bg-[#f8ad03] group-hover:text-[#00283d]">{{notificacionesNoLeidas}}</span>
+      </a>
+    </div>
+
+    <div *ngIf="userRole === 'GESTOR'" class="space-y-2">
+      <a 
+        *ngIf="canAccess('dashboard')"
+        routerLink="/gestor-dashboard" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Control</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('estudiantes')"
+        routerLink="/estudiantes" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11.25a3 3 0 10-6 0 3 3 0 006 0zM21 21v-2.25a4.5 4.5 0 00-4.5-4.5H7.5A4.5 4.5 0 003 18.75V21" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Estudiantes</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('documentos')"
+        routerLink="/documentos" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.625-12.125L5.625 9.75M17.625 1.125L21.75 9.75M2.25 12.75v6a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-6M2.25 12.75h19.5" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Documentos</span>
+      </a>
+
+      <a 
+        routerLink="/historial-tramites" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Historial</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('auditoria')"
+        routerLink="/auditoria" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Reportes</span>
+      </a>
+
+      <a 
+        routerLink="/notificaciones" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group relative">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0 a3 3 0 11-5.714 0" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Notificaciones</span>
+        <span *ngIf="notificacionesNoLeidas > 0" class="absolute top-2 left-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold transition-colors duration-150 group-hover:bg-[#f8ad03] group-hover:text-[#00283d]">{{notificacionesNoLeidas}}</span>
+      </a>
+    </div>
+<!-- text-[12px] font-medium text-[#00283d] uppercase tracking-widest -->
+    <div *ngIf="userRole === 'ADMIN'" class="space-y-2">
+      <a 
+        *ngIf="canAccess('dashboard')"
+        routerLink="/admin-dashboard" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Control Total</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('usuarios')"
+        routerLink="/usuarios" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03]transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72M15 6.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Usuarios</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('estudiantes')"
+        routerLink="/estudiantes" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11.25a3 3 0 10-6 0 3 3 0 006 0zM21 21v-2.25a4.5 4.5 0 00-4.5-4.5H7.5A4.5 4.5 0 003 18.75V21" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Estudiantes</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('aseguradoras')"
+        routerLink="/aseguradoras" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 21h19.5M6.75 6.75h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Aseguradoras</span>
+      </a>
+
+      <a 
+        routerLink="/historial-tramites" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Historial</span>
+      </a>
+
+      <a 
+        *ngIf="canAccess('auditoria')"
+        routerLink="/auditoria" 
+        routerLinkActive="text-[#f8ad03] bg-[#00283d] scale-105" 
+        class="flex items-center p-4 rounded-xl gap-5 hover:bg-white/10 hover:text-[#f8ad03] transition-all opacity-100 cursor-pointer group">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" /></svg>
+        <span *ngIf="isOpen" class="text-[12px] ml-2 font-medium uppercase tracking-widest text-lg">Auditoría</span>
+      </a>
+
+    </div>
+
+  </nav>
+
+  <div class="p-4 border-t border-white/5 bg-[#00283d] mt-3 rounded-t-lg">
     <button 
       (click)="logout()" 
-      class="w-full flex items-center p-3 rounded-xl transition-all font-bold text-sm gap-3"
-      [ngClass]="roleStyles?.buttonColor || 'bg-emerald-600 hover:bg-emerald-700'">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0110.5 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0116.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3 0-3-3m0 0l3-3m-3 3h15" />
+      class="w-full flex items-center p-4 rounded-xl transition-all font-bold text-sm gap-4 text-white hover:bg-red-500/10 hover:text-red-400 group">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 shrink-0 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
       </svg>
-      
-      <span *ngIf="isOpen" class="uppercase tracking-wider">Cerrar Sesión</span>
+      <span *ngIf="isOpen" class="uppercase tracking-[0.2em]">Cerrar Sesión</span>
     </button>
   </div>
 </aside>
 
-<!-- Panel flotante de notificaciones (no ADMIN) -->
-<div *ngIf="userRole !== 'ADMIN' && mostrarNotificaciones" class="fixed inset-0 z-50 flex items-start justify-end pt-20 pr-6">
-  <div class="bg-white rounded-2xl shadow-2xl w-96 max-h-[600px] overflow-hidden border border-slate-200">
-    <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-      <h3 class="font-black text-lg">🔔 Notificaciones</h3>
-      <button (click)="toggleNotificaciones()" class="px-3 py-1 text-xs rounded-lg bg-white/20 hover:bg-white/30">Cerrar</button>
+<div *ngIf="userRole !== 'ADMIN' && mostrarNotificaciones" class="fixed inset-0 z-50 flex items-start justify-end pt-20 pr-6 bg-black/20 backdrop-blur-sm transition-all" (click)="toggleNotificaciones()">
+  <div class="bg-white rounded-3xl shadow-2xl w-[400px] max-h-[70vh] overflow-hidden border border-slate-200 animate-in slide-in-from-right-10 duration-300" (click)="$event.stopPropagation()">
+    <div class="p-5 flex justify-between items-center bg-[#00283d] text-white">
+      <h3 class="font-bold text-lg flex items-center gap-3">
+        <svg class="w-5 h-5 text-[#f8ad03]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+        Notificaciones
+      </h3>
+      <span class="bg-[#f8ad03] text-[#00283d] text-[10px] px-2 py-1 rounded-full font-black uppercase transition-colors duration-150 hover:bg-white hover:text-[#00283d] cursor-default">{{notificacionesNoLeidas}} nuevas</span>
     </div>
-    <div class="overflow-y-auto max-h-[500px]">
-      <div *ngIf="notificaciones.length === 0" class="p-8 text-center text-slate-400">
-        No tienes notificaciones nuevas
+    
+    <div class="overflow-y-auto max-h-[500px] bg-slate-50/50">
+      <div *ngIf="notificaciones.length === 0" class="p-12 text-center text-slate-400">
+        <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+        <p class="text-sm">Bandeja de entrada vacía</p>
       </div>
-      <div *ngFor="let notif of notificaciones" class="p-4 border-b border-slate-100 hover:bg-slate-50 transition-all">
-        <div class="flex justify-between items-start">
+      <div *ngFor="let notif of notificaciones" class="p-4 border-b border-slate-100 hover:bg-white transition-all group">
+        <div class="flex justify-between items-start gap-4">
           <div class="flex-grow">
-            <p class="text-sm font-bold text-slate-800">{{ notif.mensaje }}</p>
-            <p class="text-xs text-slate-400 mt-1">{{ notif.fechaEnvio | date:'short' }}</p>
+            <p class="text-xs font-bold text-slate-800 leading-snug group-hover:text-[#00283d] transition-colors">{{ notif.mensaje }}</p>
+            <p class="text-[9px] text-slate-400 mt-2 uppercase font-bold tracking-tighter">{{ notif.fechaEnvio | date:'medium' }}</p>
           </div>
           <button 
             (click)="marcarLeida(notif)"
-            class="ml-2 px-2 py-1 text-xs rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
-            Marcar leída
+            class="shrink-0 p-2 rounded-full text-slate-300 hover:text-green-500 hover:bg-green-50 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
           </button>
         </div>
       </div>

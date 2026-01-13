@@ -11,7 +11,8 @@ import { switchMap } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './estudiantes.html',
-  styleUrl: './estudiantes.css'
+  styleUrl: './estudiantes.css',
+  
 })
 export class EstudiantesPage implements OnInit, OnDestroy {
   estudiantes: any[] = [];
@@ -21,6 +22,7 @@ export class EstudiantesPage implements OnInit, OnDestroy {
   autoRefresh = true;
   ultimaActualizacion: Date | null = null;
   rol: string = '';
+  filtroBusqueda: string = '';
 
   cedulaElegibilidad = '';
   resultadoElegibilidad = '';
@@ -210,4 +212,14 @@ export class EstudiantesPage implements OnInit, OnDestroy {
       }
     });
   }
+  estudiantesFiltrados() {
+  if (!this.filtroBusqueda.trim()) {
+    return this.estudiantes;
+  }
+  const busqueda = this.filtroBusqueda.toLowerCase();
+  return this.estudiantes.filter(est => 
+    est.nombreCompleto.toLowerCase().includes(busqueda) || 
+    est.cedula.includes(busqueda)
+  );
+}
 }

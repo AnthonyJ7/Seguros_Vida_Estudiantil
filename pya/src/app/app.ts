@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router'; // Añadido NavigationEnd
-import { filter } from 'rxjs/operators'; // Añadido filter
+import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
-import { NavbarComponent } from './components/navbar/navbar'; // Asegura que la ruta sea correcta
+import { NavbarComponent } from './components/navbar/navbar';
 import { BackendStatusService } from './services/backend-status.service';
 
 @Component({
@@ -17,12 +17,18 @@ export class AppComponent {
   backendMsg = '';
 
   constructor(private router: Router, private backend: BackendStatusService) {
-    // Esto soluciona los errores de tu captura:
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      // Si estamos en login, showNavbar es FALSE
+      // 1. Control de visibilidad del Navbar
       this.showNavbar = !(event.urlAfterRedirects.includes('login') || event.urlAfterRedirects === '/');
+
+      // 2. AUTO-SCROLL AL INICIO: Cada vez que cambies de página, sube al top
+      window.scrollTo(0, 0);
+      
+      // Si el scroll está dentro del <main>, forzamos el scroll del elemento
+      const mainContent = document.querySelector('main');
+      if (mainContent) mainContent.scrollTop = 0;
     });
 
     this.backend.down$.subscribe(v => this.backendDown = v);

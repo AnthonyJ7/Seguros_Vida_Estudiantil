@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { TramitesHttpService } from '../../services/tramites-http.service';
 
 interface TramiteHistorial {
@@ -19,19 +21,20 @@ interface TramiteHistorial {
     aprobado: boolean;
     observaciones?: string;
   };
+  seleccionado?: boolean; // Para efectos visuales
 }
 
 @Component({
   selector: 'app-historial-tramites',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './historial-tramites.html',
-  styleUrl: './historial-tramites.css',
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './historial-tramites.html'
 })
 export class HistorialTramitesComponent implements OnInit {
   tramites: TramiteHistorial[] = [];
   tramitesFiltrados: TramiteHistorial[] = [];
   cargando = true;
+  role = '';
   
   // Filtros
   filtroEstado: 'todos' | 'aprobados' | 'rechazados' = 'todos';
@@ -39,45 +42,50 @@ export class HistorialTramitesComponent implements OnInit {
   filtroFechaInicio = '';
   filtroFechaFin = '';
 
-  constructor(private tramitesHttp: TramitesHttpService) {}
+  get homeLink(): string {
+    return this.role === 'CLIENTE' ? '/cliente-inicio' : '/gestor-dashboard';
+  }
+
+  constructor(
+    private tramitesHttp: TramitesHttpService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
+    this.role = (localStorage.getItem('role') || localStorage.getItem('userRole') || '').toUpperCase();
     await this.cargarTramites();
   }
 
   async cargarTramites() {
     this.cargando = true;
     try {
-      this.tramitesHttp.listar().subscribe({
-        next: (data) => {
-          // Filtrar solo trámites cerrados (aprobados o rechazados)
-          this.tramites = data.filter((t: any) => {
-            const estado = (t.estadoCaso || '').toLowerCase();
-            return estado === 'aprobado' || estado === 'rechazado';
-          }).map((t: any) => ({
-            ...t,
-            fechaRegistro: this.convertirFecha(t.fechaRegistro),
-            fechaCierre: t.fechaCierre ? this.convertirFecha(t.fechaCierre) : undefined
-          }));
-          
-          // Ordenar por fecha de cierre más reciente
-          this.tramites.sort((a, b) => {
-            const fechaA = a.fechaCierre || a.fechaRegistro;
-            const fechaB = b.fechaCierre || b.fechaRegistro;
-            return fechaB.getTime() - fechaA.getTime();
-          });
-          
-          this.aplicarFiltros();
-          this.cargando = false;
-        },
-        error: (err) => {
-          console.error('Error cargando trámites:', err);
-          this.cargando = false;
-        }
+      // Usamos firstValueFrom para manejar la suscripción de forma limpia
+      const data: any = await firstValueFrom(this.tramitesHttp.listar());
+      
+      // Filtrar solo trámites cerrados (aprobados o rechazados)
+      this.tramites = data.filter((t: any) => {
+        const estado = (t.estadoCaso || '').toLowerCase();
+        return estado === 'aprobado' || estado === 'rechazado';
+      }).map((t: any) => ({
+        ...t,
+        seleccionado: false,
+        fechaRegistro: this.convertirFecha(t.fechaRegistro),
+        fechaCierre: t.fechaCierre ? this.convertirFecha(t.fechaCierre) : undefined
+      }));
+      
+      // Ordenar por fecha de cierre más reciente
+      this.tramites.sort((a, b) => {
+        const fechaA = a.fechaCierre || a.fechaRegistro;
+        const fechaB = b.fechaCierre || b.fechaRegistro;
+        return fechaB.getTime() - fechaA.getTime();
       });
+      
+      this.aplicarFiltros();
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error cargando trámites:', error);
+    } finally {
       this.cargando = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -114,38 +122,20 @@ export class HistorialTramitesComponent implements OnInit {
     if (this.filtroFechaInicio) {
       const fechaInicio = new Date(this.filtroFechaInicio);
       fechaInicio.setHours(0, 0, 0, 0);
-      resultado = resultado.filter(t => {
-        const fecha = t.fechaCierre || t.fechaRegistro;
-        return fecha >= fechaInicio;
-      });
+      resultado = resultado.filter(t => (t.fechaCierre || t.fechaRegistro) >= fechaInicio);
     }
 
     if (this.filtroFechaFin) {
       const fechaFin = new Date(this.filtroFechaFin);
       fechaFin.setHours(23, 59, 59, 999);
-      resultado = resultado.filter(t => {
-        const fecha = t.fechaCierre || t.fechaRegistro;
-        return fecha <= fechaFin;
-      });
+      resultado = resultado.filter(t => (t.fechaCierre || t.fechaRegistro) <= fechaFin);
     }
 
     this.tramitesFiltrados = resultado;
+    this.cdr.markForCheck();
   }
 
-  getEstadoClase(estado: string): string {
-    const estadoLower = (estado || '').toLowerCase();
-    if (estadoLower === 'aprobado') return 'bg-emerald-100 text-emerald-700';
-    if (estadoLower === 'rechazado') return 'bg-red-100 text-red-700';
-    return 'bg-gray-100 text-gray-700';
-  }
-
-  getEstadoIcono(estado: string): string {
-    const estadoLower = (estado || '').toLowerCase();
-    if (estadoLower === 'aprobado') return '✅';
-    if (estadoLower === 'rechazado') return '❌';
-    return '⏸️';
-  }
-
+  // Getters para los KPIs del Dashboard
   get totalAprobados(): number {
     return this.tramites.filter(t => (t.estadoCaso || '').toLowerCase() === 'aprobado').length;
   }

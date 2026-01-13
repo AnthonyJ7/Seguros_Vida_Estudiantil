@@ -33,6 +33,21 @@ export class NotificacionesComponent implements OnInit {
     await this.cargar();
   }
 
+  /**
+   * Función para gestionar la selección de una notificación
+   * Activa la animación y cambia los colores corporativos
+   */
+  seleccionarNotificacion(noti: any) {
+    // Si quieres que solo una esté seleccionada a la vez, limpia las demás:
+    this.notificaciones.forEach(n => n.seleccionada = false);
+    
+    // Activa el estado de la notificación clickeada
+    noti.seleccionada = true;
+
+    // Forzar la detección de cambios para la animación de Tailwind
+    this.cdr.markForCheck();
+  }
+
   private async cargar() {
     this.cargando = true;
     this.error = '';
@@ -47,11 +62,14 @@ export class NotificacionesComponent implements OnInit {
         return;
       }
 
-      // Todos los roles usan el backend API que filtra por UID
       const notisApi = await firstValueFrom(this.notifHttp.misNotificaciones());
-      this.notificaciones = (notisApi || []).sort((a, b) => 
-        this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime()
-      );
+      
+      // Al recibir las notificaciones, les agregamos la propiedad 'seleccionada'
+      this.notificaciones = (notisApi || [])
+        .map(n => ({ ...n, seleccionada: false })) // Inicializamos en false
+        .sort((a, b) => 
+          this.toDate(b.fechaEnvio).getTime() - this.toDate(a.fechaEnvio).getTime()
+        );
 
     } catch (error) {
       console.error('Error cargando notificaciones:', error);
