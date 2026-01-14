@@ -1,68 +1,96 @@
-<div class="min-h-screen w-full flex overflow-hidden font-sans bg-white">
-  
-  <div class="hidden lg:flex lg:w-3/5 bg-[#0d0221] p-16 flex-col justify-between relative overflow-hidden">
-    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600 opacity-20 rounded-full blur-[120px]"></div>
-    <div class="absolute bottom-[10%] right-[-5%] w-80 h-80 bg-indigo-600 opacity-30 rounded-full blur-[100px]"></div>
-
-    <div class="relative z-10">
-      <h1 class="text-white text-4xl font-black tracking-tighter italic">
-        PYA <span class="text-purple-500">SEGUROS</span>
-      </h1>
+<div class="min-h-screen w-full flex overflow-hidden font-sans bg-[#f8fafc]">
+  <div class="hidden lg:flex lg:w-3/5 bg-[#003f72] p-12 flex-col justify-between relative overflow-hidden text-white">
+    <div class="absolute right-0 top-0 bottom-0 w-1 bg-[#f8ad03] opacity-20"></div>
+    <div class="absolute inset-0 z-0">
+      <img src="poster.png" alt="Background" class="w-full h-full object-cover opacity-20 mix-blend-overlay">
+    </div>
+    
+    <div class="relative z-10 flex items-center gap-6">
+      <div class="w-24 h-24 bg-white rounded-2xl flex items-center justify-center p-3 shadow-xl">
+        <img src="logo.png" alt="Logo UTPL" class="w-full h-full object-contain">
+      </div>
+      <div>
+        <h1 class="text-white text-4xl font-black italic tracking-tighter">
+          UTPL <span class="text-[#f8ad03]">SEGUROS</span>
+        </h1>
+      </div>
     </div>
 
     <div class="relative z-10">
-      <h2 class="text-white text-7xl font-black leading-tight mb-6 tracking-tighter">
-        Protege lo que <br> 
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300">más quieres.</span>
-      </h2>
-      <p class="text-purple-100/60 text-xl max-w-md leading-relaxed font-medium">
-        Accede a tu panel personalizado y gestiona tus pólizas con la tecnología más avanzada.
-      </p>
+      <h2 class="text-white text-5xl font-extrabold leading-tight mb-4">Protege lo que <br><span class="text-[#f8ad03]">más quieres</span></h2>
+      <p class="text-blue-100/70 text-base max-w-md">Accede a tu panel y gestiona tus pólizas con la tecnología de la UTPL.</p>
     </div>
-
-    <div class="relative z-10 text-purple-500/50 text-xs font-bold tracking-widest uppercase">
-      © 2026 Seguros PyA - Sistema de Gestión de Activos
-    </div>
+    <div class="relative z-10 text-white/30 text-[10px] font-bold tracking-widest uppercase">© 2026 Seguros PyA</div>
   </div>
 
-  <div class="w-full lg:w-2/5 bg-white flex items-center justify-center p-8 md:p-16">
+  <div class="w-full lg:w-2/5 bg-white flex items-center justify-center p-8">
     <div class="max-w-md w-full">
-      
-      <div class="mb-10">
-        <h3 class="text-slate-900 text-4xl font-black mb-2 tracking-tight">Bienvenido</h3>
-        <p class="text-slate-400 font-medium italic">Ingresa tus credenciales para continuar.</p>
-      </div>
-
-      <form class="space-y-6">
-        <div>
-          <label class="block text-xs font-black text-slate-500 mb-2 uppercase tracking-[0.2em]">Correo Electrónico</label>
-          <input type="email" [(ngModel)]="email" name="email"
-                 class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all placeholder:text-slate-300"
-                 placeholder="nombre@ejemplo.com">
-        </div>
-
-        <div>
-          <label class="block text-xs font-black text-slate-500 mb-2 uppercase tracking-[0.2em]">Contraseña</label>
-          <input type="password" [(ngModel)]="password" name="password"
-                 class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all"
-                 placeholder="••••••••">
-        </div>
-
-        <button (click)="onLogin()" type="button"
-                class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-purple-600 shadow-2xl shadow-purple-200 active:scale-95 transition-all tracking-widest text-sm">
-          INGRESAR AL PORTAL
-        </button>
-      </form>
-
-      <div class="mt-12 p-6 bg-purple-50 rounded-[2rem] border border-purple-100">
-        <p class="text-[10px] text-purple-400 uppercase font-black mb-3 tracking-widest text-center">Cuentas de Acceso</p>
-        <div class="grid grid-cols-1 gap-2 text-xs text-purple-900 font-medium">
-          <div class="flex justify-between"><span>Admin:</span> <span class="font-bold">admin@pya.com</span></div>
-          <div class="flex justify-between"><span>Asegurador:</span> <span class="font-bold">pro@pya.com</span></div>
-          <!-- Eliminado: Clave común 12345, ya no es relevante para el login con Firebase Auth -->
+      <div class="mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-[#00283d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v4"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-slate-900 text-2xl font-extrabold">Bienvenido</h3>
+            <p class="text-slate-400 text-sm">Ingresa tus credenciales para continuar.</p>
+          </div>
         </div>
       </div>
 
+<div class="bg-white p-8 rounded-xl shadow-md border border-slate-100">
+        
+        <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md">
+          <p class="text-xs font-bold text-red-700">{{ errorMessage }}</p>
+        </div>
+
+        <form (submit)="onLogin(); $event.preventDefault()" class="space-y-5">
+          <div>
+            <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Correo Electrónico</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
+              </span>
+              <input type="email" [(ngModel)]="email" name="email" class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-lg focus:border-[#003f72] focus:ring-2 focus:ring-[#003f72]/10 outline-none transition-all text-slate-900" placeholder="ejemplo@utpl.edu.ec">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Contraseña</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </span>
+              <input (input)="onPasswordInput()" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" class="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-lg focus:border-[#003f72] focus:ring-2 focus:ring-[#003f72]/10 outline-none transition-all text-slate-900" [class.border-red-500]="invalidPassword" [class.focus:ring-red-200]="invalidPassword" [class.focus:border-red-500]="invalidPassword" placeholder="••••••••">
+              
+              <span *ngIf="invalidPassword" class="absolute inset-y-0 right-10 mr-4 w-3 h-3 bg-red-500 rounded-sm"></span>
+
+              <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-300 hover:text-[#003f72]">
+                <!-- Eye (hidden state) -->
+                <svg *ngIf="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <!-- Eye-off (visible state) -->
+                <svg *ngIf="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.969 9.969 0 012.184-3.364M9.88 9.88a3 3 0 104.243 4.243" />
+                  <path stroke-width="2" d="M3 3l18 18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="isLoading" class="w-full bg-[#003f72] text-white font-bold py-3 rounded-xl hover:bg-[#002d52] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
+            <span *ngIf="!isLoading" class="flex items-center gap-3">
+              <svg *ngIf="showCheck" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              <span *ngIf="!showCheck">INGRESAR</span>
+            </span>
+            <div *ngIf="isLoading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </button>
+        </form>
+        <div class="mt-4 text-right">
+          <a class="text-sm text-[#003f72] hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

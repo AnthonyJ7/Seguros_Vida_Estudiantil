@@ -1,27 +1,69 @@
-<div class="max-w-3xl mx-auto mt-12 p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
-  <h2 class="text-3xl font-black text-slate-800 mb-8">Documentos</h2>
-  <div *ngIf="loading" class="text-slate-500">Cargando documentos...</div>
-  <div *ngIf="error" class="text-red-600 font-bold">{{ error }}</div>
-  <div *ngIf="!loading && documentos.length === 0" class="text-slate-500">No hay documentos disponibles.</div>
-  <table *ngIf="!loading && documentos.length > 0" class="min-w-full mt-4">
-    <thead>
-      <tr>
-        <th class="text-left py-2 px-4">Nombre</th>
-        <th class="text-left py-2 px-4">Tipo</th>
-        <th class="text-left py-2 px-4">Fecha</th>
-        <th class="text-left py-2 px-4">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let doc of documentos">
-        <td class="py-2 px-4">{{ doc.nombreArchivo }}</td>
-        <td class="py-2 px-4">{{ doc.tipo }}</td>
-        <td class="py-2 px-4">{{ doc.fechaCarga || doc.fechaSubida | date:'short' }}</td>
-        <td class="py-2 px-4">
-          <a *ngIf="doc.url" [href]="doc.url" target="_blank" class="text-indigo-600 hover:underline">Ver/Descargar</a>
-          <span *ngIf="!doc.url" class="text-slate-400 text-sm">Sin enlace</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="min-h-screen bg-slate-100 p-6 text-[#00283d]">
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-[#00283d] tracking-tight uppercase">Repositorio de Documentos</h1>
+      <p class="text-slate-500 text-sm">Consulta y descarga de expedientes digitales cargados en el sistema</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-[#f8ad03]"></div>
+  </div>
+
+  <div *ngIf="error" class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-bold">
+    ⚠️ {{ error }}
+  </div>
+
+  <div *ngIf="!loading" class="bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-4 border-b border-slate-100 bg-white flex justify-between items-center">
+      <h2 class="text-sm font-bold text-[#00283d] uppercase tracking-wider">Documentación Registrada</h2>
+      <span class="text-[10px] font-bold text-slate-400 italic">Total: {{ documentos.length }} archivos</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+          <tr>
+            <th class="px-6 py-4">Nombre del Archivo</th>
+            <th class="px-6 py-4">Categoría / Tipo</th>
+            <th class="px-6 py-4">Fecha de Carga</th>
+            <th class="px-6 py-4 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100">
+          <tr *ngIf="documentos.length === 0">
+            <td colspan="4" class="px-6 py-10 text-center text-slate-400 italic">
+              No hay documentos disponibles en este expediente.
+            </td>
+          </tr>
+
+          <tr *ngFor="let doc of documentos" class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">📄</span>
+                <span class="font-medium text-[#00283d] truncate max-w-[250px]">{{ doc.nombreArchivo }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 rounded bg-slate-100 text-[10px] font-bold text-slate-600 uppercase">
+                {{ doc.tipo }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-500 font-mono text-xs">
+              {{ doc.fechaCarga || doc.fechaSubida | date:'mediumDate' }}
+            </td>
+            <td class="px-6 py-4 text-center">
+              <a *ngIf="doc.url" [href]="doc.url" target="_blank" 
+                class="inline-block bg-[#00283d] text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-[#f8ad03] hover:text-[#00283d] transition-all duration-300 shadow-sm no-underline">
+                Ver / Descargar
+              </a>
+              <span *ngIf="!doc.url" class="text-[10px] font-bold text-slate-300 uppercase italic">
+                Sin enlace
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

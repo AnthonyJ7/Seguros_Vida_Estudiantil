@@ -1,78 +1,88 @@
-<div class="max-w-4xl mx-auto p-4 space-y-6">
-  <!-- Loading -->
-  <div *ngIf="cargando" class="text-center py-20">
-    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-    <p class="mt-4 text-slate-500">Cargando notificaciones...</p>
+<div class="min-h-screen bg-slate-100 p-6 text-[#00283d]">
+  
+  <div class="flex justify-between items-start mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-[#00283d] tracking-tight uppercase">Centro de Notificaciones</h1>
+      <p class="text-slate-500 text-sm">Mensajes, actualizaciones de estado y alertas de sistema</p>
+    </div>
+    
+    <a [routerLink]="homeLink" 
+       class="bg-white border border-slate-200 text-[#00283d] px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest hover:bg-[#f8ad03] hover:border-[#f8ad03] transition-all shadow-sm flex items-center gap-2">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Volver al inicio
+    </a>
   </div>
 
-  <!-- Error -->
-  <div *ngIf="error && !cargando" class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800">
-    {{ error }}
-    <a [routerLink]="homeLink" class="ml-3 underline font-bold">Volver al inicio</a>
+  <div *ngIf="cargando" class="flex flex-col justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-[#f8ad03]"></div>
+    <p class="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Sincronizando mensajes...</p>
   </div>
 
-  <!-- Content -->
-  <div *ngIf="!cargando && !error">
-    <div class="mb-6">
-      <a [routerLink]="homeLink" class="text-indigo-600 font-bold text-sm hover:underline">← Volver al inicio</a>
-      <h2 class="text-3xl font-black text-slate-800 mt-3">Notificaciones</h2>
-      <p class="text-slate-500 mt-1">Mensajes y actualizaciones sobre tu solicitud</p>
+  <div *ngIf="!cargando && !error" class="space-y-4">
+    
+    <div *ngIf="notificaciones.length === 0" class="bg-white rounded-md border border-slate-200 shadow-sm p-16 text-center">
+      <svg class="w-12 h-12 mx-auto mb-4 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+      <p class="text-[#00283d] font-bold uppercase tracking-wider">No hay notificaciones</p>
     </div>
 
-    <!-- Empty state -->
-    <div *ngIf="notificaciones.length === 0" class="bg-white rounded-xl shadow p-12 text-center">
-      <p class="text-5xl mb-4">🔔</p>
-      <p class="text-slate-500 font-bold">No hay notificaciones aún</p>
-      <p class="text-slate-400 text-sm">Recibirás actualizaciones sobre el estado de tu solicitud</p>
-    </div>
-
-    <!-- Notificaciones list -->
-    <div *ngIf="notificaciones.length > 0" class="space-y-4">
+    <div *ngIf="notificaciones.length > 0" class="grid grid-cols-1 gap-4">
       <div *ngFor="let noti of notificaciones" 
-           class="bg-white rounded-xl shadow p-6 border-l-4"
+           (click)="seleccionarNotificacion(noti)"
+           class="cursor-pointer bg-white rounded-md shadow-sm border border-slate-200 border-l-4 transition-all duration-300 overflow-hidden relative"
            [ngClass]="{
-             'border-l-amber-500': noti.tipo === 'VALIDACION' || noti.tipo === 'INFO',
+             'border-l-[#f8ad03]': noti.tipo === 'EMAIL' || noti.tipo === 'VALIDACION' || noti.tipo === 'INFO',
              'border-l-emerald-500': noti.tipo === 'APROBACION' || noti.tipo === 'EXITO',
              'border-l-red-500': noti.tipo === 'RECHAZO' || noti.tipo === 'ERROR',
-             'border-l-indigo-500': noti.tipo === 'MENSAJE' || noti.tipo === 'ALERTA'
+             'border-l-[#00283d]': noti.tipo === 'SISTEMA' || noti.tipo === 'MENSAJE' || noti.tipo === 'ALERTA',
+             'bg-slate-50 scale-[0.99] ring-1 ring-[#f8ad03]/30': noti.seleccionada
            }">
         
-        <div class="flex items-start justify-between mb-3">
-          <div>
-            <h3 class="font-black text-lg text-slate-800">{{ noti.titulo || noti.tipo }}</h3>
-            <p class="text-xs text-slate-400 mt-1">{{ noti.fechaEnvio | firebaseDate:'full' }}</p>
+        <div class="p-5 flex justify-between items-start">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-1">
+              <div class="text-slate-400 transition-colors" [class.text-[#f8ad03]]="noti.seleccionada">
+                <svg class="w-5 h-5" [class.animate-bounce]="noti.seleccionada" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+              </div>
+              
+              <h3 class="font-bold text-[#00283d] uppercase text-xs tracking-wider transition-colors" [class.text-[#f8ad03]]="noti.seleccionada">
+                {{ noti.titulo || noti.tipo }}
+              </h3>
+              <span class="text-[10px] text-slate-400 font-mono italic uppercase">{{ noti.fechaEnvio | firebaseDate:'full' }}</span>
+            </div>
+            
+            <p class="text-slate-600 text-sm leading-relaxed mt-3 pb-3">{{ noti.mensaje }}</p>
+
+            <div *ngIf="noti.detalles" class="bg-slate-50 rounded p-2 mt-2 flex gap-3 items-center border border-slate-100 w-fit">
+              <div class="text-[#f8ad03] font-bold text-[10px] uppercase leading-none">Info:</div>
+              <div class="text-[10px] text-slate-500 font-medium italic truncate">{{ noti.detalles }}</div>
+            </div>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-bold"
-                [ngClass]="{
-                  'bg-amber-100 text-amber-800': noti.tipo === 'VALIDACION' || noti.tipo === 'INFO',
-                  'bg-emerald-100 text-emerald-800': noti.tipo === 'APROBACION' || noti.tipo === 'EXITO',
-                  'bg-red-100 text-red-800': noti.tipo === 'RECHAZO' || noti.tipo === 'ERROR',
-                  'bg-indigo-100 text-indigo-800': noti.tipo === 'MENSAJE' || noti.tipo === 'ALERTA'
-                }">
+
+          <span class="px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border transition-all"
+                [ngClass]="noti.seleccionada ? 'bg-[#f8ad03] text-white border-[#f8ad03]' : 'bg-slate-100 text-[#00283d] border-slate-300'">
             {{ noti.tipo }}
           </span>
-        </div>
-
-        <p class="text-slate-700 text-sm leading-relaxed">{{ noti.mensaje }}</p>
-
-        <div *ngIf="noti.detalles" class="bg-slate-50 rounded-lg p-4 mt-4 text-sm text-slate-600">
-          <strong>Detalles:</strong> {{ noti.detalles }}
         </div>
       </div>
     </div>
 
-    <!-- Action buttons -->
-    <!-- Acciones solo para CLIENTE -->
-    <div *ngIf="role === 'CLIENTE'" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <a routerLink="/cliente-inicio" class="block px-4 py-3 bg-slate-800 text-white rounded-xl font-bold text-center hover:bg-slate-900 transition">
-        📊 Ir al Inicio
+    <div *ngIf="role === 'CLIENTE'" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+      <a routerLink="/cliente-inicio" class="flex items-center justify-center gap-3 px-4 py-3 bg-[#00283d] text-white rounded-md font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all">
+        Ir al Inicio
       </a>
-      <a routerLink="/mi-solicitud" class="block px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold text-center hover:bg-indigo-700 transition">
-        📋 Ver Mi Solicitud
+      <a routerLink="/mi-solicitud" class="flex items-center justify-center gap-3 px-4 py-3 bg-white text-[#00283d] border border-slate-200 rounded-md font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
+        Ver Mi Solicitud
       </a>
-      <a routerLink="/envio-documentos" class="block px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold text-center hover:bg-emerald-700 transition">
-        📎 Enviar Documentos
+      <a routerLink="/envio-documentos" class="flex items-center justify-center gap-3 px-4 py-3 bg-[#f8ad03] text-[#00283d] rounded-md font-bold text-[10px] uppercase tracking-widest hover:shadow-md transition-all">
+        Enviar Documentos
       </a>
     </div>
+
   </div>
 </div>

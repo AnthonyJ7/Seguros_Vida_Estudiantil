@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DashboardService, DashboardGestorData } from '../../services/dashboard.service';
 import { TramitesHttpService } from '../../services/tramites-http.service';
 import { DocumentosHttpService } from '../../services/documentos-http.service';
@@ -33,6 +34,7 @@ export class GestorDashComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private cdr: ChangeDetectorRef,
+    private router: Router,
     private tramitesHttp: TramitesHttpService,
     private documentosHttp: DocumentosHttpService,
     private notificacionesHttp: NotificacionesHttpService
@@ -75,9 +77,55 @@ export class GestorDashComponent implements OnInit {
     });
   }
 
+  getUltimasNotificaciones(): any[] {
+    const lista = (this.datosGestor?.notificacionesPendientes || []).slice();
+    lista.sort((a, b) => {
+      const ta = a?.fechaEnvio ? new Date(a.fechaEnvio).getTime() : 0;
+      const tb = b?.fechaEnvio ? new Date(b.fechaEnvio).getTime() : 0;
+      return tb - ta; // más recientes primero
+    });
+    return lista.slice(0, 4);
+  }
+
   abrirDetalle(tramite: any) {
     this.selectedTramite = tramite;
     this.documentoSeleccionado = { tipo: '', archivo: null };
+  }
+
+  async abrirDetallePorNotificacion(notif: any) {
+    const id = notif?.tramiteId || notif?.tramite || notif?.tramiteId;
+    if (!id) {
+      alert('No hay trámite asociado a esta notificación');
+      return;
+    }
+
+    // Buscar localmente
+    const local = this.datosGestor?.tramitesEnValidacion?.find(t => t.id === id || t.codigoUnico === id);
+    if (local) {
+      this.abrirDetalle(local);
+      return;
+    }
+
+    // Si no está local, obtener desde el servicio
+    try {
+      this.cargando = true;
+      const tramite = await this.dashboardService.getTramiteConEstudiante(id);
+      if (tramite) {
+        this.selectedTramite = {
+          ...tramite,
+          estudiante: { nombreCompleto: tramite.nombreEstudiante, cedula: tramite.cedulaEstudiante }
+        };
+        this.documentoSeleccionado = { tipo: '', archivo: null };
+      } else {
+        alert('No se encontró el trámite asociado a la notificación');
+      }
+    } catch (err) {
+      console.error('Error obteniendo trámite por notificación:', err);
+      alert('Error al obtener el trámite');
+    } finally {
+      this.cargando = false;
+      this.cdr.detectChanges();
+    }
   }
 
   marcarNotificacionLeida(notif: any) {
@@ -96,6 +144,10 @@ export class GestorDashComponent implements OnInit {
         this.marcandoNotificacionId = null;
       }
     });
+  }
+
+  irANotificaciones() {
+    this.router.navigate(['../notificaciones']);
   }
 
   cerrarDetalle() {
