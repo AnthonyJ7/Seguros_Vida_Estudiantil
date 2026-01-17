@@ -29,6 +29,9 @@ interface CrearTramiteDTO {
   descripcion?: string;
   beneficiario?: Omit<Beneficiario, 'idBeneficiario'>;
   medioNotificacionPreferido?: string;
+  // Datos financieros opcionales para calcular copago
+  copagoCategoria?: 'personal' | 'grupo_especial' | 'licencia_sin_sueldo' | 'estudiante';
+  montoFacturaReferencial?: number;
 }
 
 export class TramiteService {
@@ -41,7 +44,36 @@ export class TramiteService {
   private documentosRepo = new DocumentosRepository();
   private gestorFallbackUid = process.env.GESTOR_UID_DEFAULT || 'UAGpe4hb4gXKsVEK97fn3MFQKK53';
 
+  private calcularCopago(
+    categoria: CrearTramiteDTO['copagoCategoria'] | undefined,
+    montoFacturaReferencial?: number
+  ): { categoria: string; porcentaje: number; baseCalculo?: number; valorEstimado?: number; fuente: 'TDR' | 'manual' } {
+    const mapa: Record<string, number> = {
+      personal: 0.30,
+      grupo_especial: 0.65,
+      licencia_sin_sueldo: 1,
+      estudiante: 0
+    };
+    const key = (categoria || 'estudiante').toLowerCase();
+    const porcentaje = mapa[key] ?? 0;
+    const baseCalculo = typeof montoFacturaReferencial === 'number' && montoFacturaReferencial > 0
+      ? Number(montoFacturaReferencial)
+      : undefined;
+    const valorEstimado = baseCalculo !== undefined ? Number((baseCalculo * porcentaje).toFixed(2)) : undefined;
+    return {
+      categoria: key,
+      porcentaje,
+      baseCalculo,
+      valorEstimado,
+      fuente: 'TDR'
+    };
+  }
+
   async crearTramite(dto: CrearTramiteDTO, creadoPor: string, rol: string) {
+    if (!dto?.cedulaEstudiante?.trim()) throw new Error('cedulaEstudiante es requerida');
+    if (!dto?.tipoTramite) throw new Error('tipoTramite es requerido');
+    if (!dto?.motivo?.trim()) throw new Error('motivo es requerido');
+
     // 1. Verificar elegibilidad del estudiante (según diagrama de secuencia)
     const { elegible, razon, estudiante } = await this.estudiantesService.verificarElegibilidad(dto.cedulaEstudiante);
     
@@ -117,7 +149,8 @@ export class TramiteService {
       medioNotificacionPreferido: dto.medioNotificacionPreferido || 'email',
       validaciones: {
         reglasNegocio: { valida: true }
-      }
+      },
+      copago: this.calcularCopago(dto.copagoCategoria, dto.montoFacturaReferencial)
     };
 
     // 4. Agregar beneficiario si se proporciona
@@ -166,6 +199,40 @@ export class TramiteService {
     });
 
     return { id: tramiteId, ...tramite };
+  }
+
+  async obtenerDashboardCliente(uid: string) {
+    const tramites = await this.repo.listarPorCreador(uid);
+    const tramiteIds = tramites.map(t => t.id || t.idTramite).filter(Boolean);
+
+    // Obtener documentos por cada trámite en paralelo
+    const documentosPorTramite = await Promise.all(
+      tramiteIds.map(async (id) => ({ id, docs: await this.documentosRepo.obtenerPorTramite(id) }))
+    );
+    const documentos = documentosPorTramite.flatMap(d => d.docs);
+
+    // Notificaciones recientes para el cliente
+    const notificaciones = await this.notificacionesService.obtenerPorDestinatario(uid, 50).catch(() => []);
+
+    // Derivar datos del estudiante embebidos en el último trámite
+    const estudiante = tramites[0]?.estudiante || null;
+    const estadoCobertura = estudiante?.estadoCobertura || 'desconocido';
+
+    // Resumen por estado para métricas rápidas en UI
+    const resumenEstados = tramites.reduce<Record<string, number>>((acc, t) => {
+      const key = (t.estadoCaso || 'desconocido').toString();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      estudiante,
+      tramites,
+      documentos,
+      notificaciones,
+      estadoCobertura,
+      resumenEstados
+    };
   }
 
   async validarTramite(id: string, actorUid: string, rol: string) {

@@ -10,6 +10,8 @@ export interface CrearTramitePayload {
   descripcion?: string;
   beneficiario?: any;
   medioNotificacionPreferido?: string;
+  copagoCategoria?: 'personal' | 'grupo_especial' | 'licencia_sin_sueldo' | 'estudiante';
+  montoFacturaReferencial?: number;
 }
 
 @Injectable({ providedIn: 'root' })

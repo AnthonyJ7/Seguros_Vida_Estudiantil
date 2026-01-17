@@ -1,16 +1,18 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { NotificacionesHttpService } from '../../services/notificaciones-http.service';
 import { FirestoreService } from '../../services/firestore.service';
 import { FirebaseDatePipe } from '../../pipes/firebase-date.pipe';
+import { TramitesHttpService } from '../../services/tramites-http.service';
 
 @Component({
   selector: 'app-cliente-inicio',
   standalone: true,
-  imports: [CommonModule, RouterLink, FirebaseDatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, FirebaseDatePipe],
   templateUrl: './cliente-inicio.html'
 })
 export class ClienteInicioComponent implements OnInit {
@@ -18,11 +20,21 @@ export class ClienteInicioComponent implements OnInit {
   estudiante: any = null;
   ultimoTramite: any = null;
   ultimaNotificacion: any = null;
+  creando = false;
+  errorCrear = '';
+  nuevoTramite = {
+    tipoTramite: '',
+    motivo: '',
+    descripcion: '',
+    copagoCategoria: 'estudiante',
+    montoFacturaReferencial: undefined as number | undefined
+  };
 
   constructor(
     private firestore: FirestoreService,
     private api: ApiService,
     private notifHttp: NotificacionesHttpService,
+    private tramitesHttp: TramitesHttpService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -91,5 +103,39 @@ export class ClienteInicioComponent implements OnInit {
     if (v.toDate) return v.toDate();
     const d = new Date(v);
     return isNaN(d.getTime()) ? new Date(0) : d;
+  }
+
+  async crearTramiteRapido() {
+    this.errorCrear = '';
+    if (!this.estudiante?.cedula) {
+      this.errorCrear = 'No se encontró la cédula del estudiante.';
+      return;
+    }
+    if (!this.nuevoTramite.tipoTramite) {
+      this.errorCrear = 'Selecciona un tipo de seguro.';
+      return;
+    }
+    if (!this.nuevoTramite.motivo.trim()) {
+      this.errorCrear = 'Ingresa un motivo.';
+      return;
+    }
+    try {
+      this.creando = true;
+      await this.tramitesHttp.crearTramite({
+        cedulaEstudiante: this.estudiante.cedula,
+        tipoTramite: this.nuevoTramite.tipoTramite,
+        motivo: this.nuevoTramite.motivo,
+        descripcion: this.nuevoTramite.descripcion,
+        copagoCategoria: this.nuevoTramite.copagoCategoria as any,
+        montoFacturaReferencial: this.nuevoTramite.montoFacturaReferencial
+      }).toPromise();
+      await this.cargar();
+      this.nuevoTramite = { tipoTramite: '', motivo: '', descripcion: '', copagoCategoria: 'estudiante', montoFacturaReferencial: undefined };
+    } catch (err: any) {
+      this.errorCrear = err?.error?.error || err?.message || 'Error creando trámite';
+    } finally {
+      this.creando = false;
+      this.cdr.detectChanges();
+    }
   }
 }
