@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DashboardService, DashboardGestorData } from '../../services/dashboard.service';
 import { TramitesHttpService } from '../../services/tramites-http.service';
 import { DocumentosHttpService } from '../../services/documentos-http.service';
@@ -21,6 +22,7 @@ export class GestorDashComponent implements OnInit {
   selectedTramite: any | null = null;
   procesandoId: string | null = null;
   marcandoNotificacionId: string | null = null;
+  notificacionesColapsadas = true; // Colapsadas por defecto
   
   // Carga de documentos
   documentoSeleccionado = {
@@ -32,6 +34,7 @@ export class GestorDashComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private cdr: ChangeDetectorRef,
+    private router: Router,
     private tramitesHttp: TramitesHttpService,
     private documentosHttp: DocumentosHttpService,
     private notificacionesHttp: NotificacionesHttpService
@@ -74,9 +77,55 @@ export class GestorDashComponent implements OnInit {
     });
   }
 
+  getUltimasNotificaciones(): any[] {
+    const lista = (this.datosGestor?.notificacionesPendientes || []).slice();
+    lista.sort((a, b) => {
+      const ta = a?.fechaEnvio ? new Date(a.fechaEnvio).getTime() : 0;
+      const tb = b?.fechaEnvio ? new Date(b.fechaEnvio).getTime() : 0;
+      return tb - ta; // más recientes primero
+    });
+    return lista.slice(0, 4);
+  }
+
   abrirDetalle(tramite: any) {
     this.selectedTramite = tramite;
     this.documentoSeleccionado = { tipo: '', archivo: null };
+  }
+
+  async abrirDetallePorNotificacion(notif: any) {
+    const id = notif?.tramiteId || notif?.tramite || notif?.tramiteId;
+    if (!id) {
+      alert('No hay trámite asociado a esta notificación');
+      return;
+    }
+
+    // Buscar localmente
+    const local = this.datosGestor?.tramitesEnValidacion?.find(t => t.id === id || t.codigoUnico === id);
+    if (local) {
+      this.abrirDetalle(local);
+      return;
+    }
+
+    // Si no está local, obtener desde el servicio
+    try {
+      this.cargando = true;
+      const tramite = await this.dashboardService.getTramiteConEstudiante(id);
+      if (tramite) {
+        this.selectedTramite = {
+          ...tramite,
+          estudiante: { nombreCompleto: tramite.nombreEstudiante, cedula: tramite.cedulaEstudiante }
+        };
+        this.documentoSeleccionado = { tipo: '', archivo: null };
+      } else {
+        alert('No se encontró el trámite asociado a la notificación');
+      }
+    } catch (err) {
+      console.error('Error obteniendo trámite por notificación:', err);
+      alert('Error al obtener el trámite');
+    } finally {
+      this.cargando = false;
+      this.cdr.detectChanges();
+    }
   }
 
   marcarNotificacionLeida(notif: any) {
@@ -97,6 +146,10 @@ export class GestorDashComponent implements OnInit {
     });
   }
 
+  irANotificaciones() {
+    this.router.navigate(['../notificaciones']);
+  }
+
   cerrarDetalle() {
     this.selectedTramite = null;
     this.documentoSeleccionado = { tipo: '', archivo: null };
@@ -113,10 +166,18 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = this.selectedTramite.id || this.selectedTramite.codigoUnico;
+    // IMPORTANTE: Usar el ID de Firestore del trámite, NO el codigoUnico
+    const tramiteId = this.selectedTramite.id;
+    
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: El trámite no tiene ID de Firestore', this.selectedTramite);
+      alert('Error: El trámite seleccionado no tiene un ID válido');
+      return;
+    }
+    
     this.subiendo = true;
 
-    console.log(`[gestor-dash] Subiendo documento tipo=${this.documentoSeleccionado.tipo} para tramite=${tramiteId}`);
+    console.log(`[gestor-dash] Subiendo documento tipo=${this.documentoSeleccionado.tipo} para tramite ID=${tramiteId}, codigo=${this.selectedTramite.codigoUnico}`);
 
     this.documentosHttp.subirArchivo(tramiteId, this.documentoSeleccionado.archivo, this.documentoSeleccionado.tipo).subscribe({
       next: () => {
@@ -126,7 +187,7 @@ export class GestorDashComponent implements OnInit {
         this.subiendo = false;
         // Reabrir modal con datos actualizados
         const tramiteActualizado = this.datosGestor?.tramitesEnValidacion.find(
-          t => (t.id || t.codigoUnico) === tramiteId
+          t => t.id === tramiteId
         );
         if (tramiteActualizado) {
           this.selectedTramite = tramiteActualizado;
@@ -141,7 +202,12 @@ export class GestorDashComponent implements OnInit {
   }
 
   validar(tramite: any) {
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.validarTramite(tramiteId).subscribe({
@@ -165,7 +231,12 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.aprobarTramite(tramiteId, Number(montoAprobado)).subscribe({
@@ -190,7 +261,12 @@ export class GestorDashComponent implements OnInit {
       return;
     }
 
-    const tramiteId = tramite.id || tramite.codigoUnico;
+    const tramiteId = tramite.id;
+    if (!tramiteId) {
+      console.error('[gestor-dash] Error: Trámite sin ID', tramite);
+      alert('Error: Trámite sin ID válido');
+      return;
+    }
     this.procesandoId = tramiteId;
     
     this.tramitesHttp.solicitarCorrecciones(tramiteId, descripcion).subscribe({

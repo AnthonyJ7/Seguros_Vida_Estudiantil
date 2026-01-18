@@ -380,3 +380,24 @@ Para preguntas, consultar documentación:
 - Rápida: [GUIA_VISUAL_RAPIDA.md](./GUIA_VISUAL_RAPIDA.md)
 
 **¡Proyecto completado con éxito! 🚀**
+
+---
+
+## 🆕 Actualización 2026-01-17
+
+### Cambios visibles (Cliente)
+- Se integró el formulario "Crear nuevo trámite" en la página principal del cliente.
+- Estilos modernizados con Tailwind: tarjeta, grid responsiva, inputs y botón principal.
+- Validación en cliente: exige `tipoTramite` y `motivo`; muestra errores en línea.
+
+### Archivos modificados
+- [pya/src/app/pages/cliente-inicio/cliente-inicio.ts](src/app/pages/cliente-inicio/cliente-inicio.ts): Lógica para crear trámite (`crearTramiteRapido`), estado del formulario, y `FormsModule`.
+- [pya/src/app/pages/cliente-inicio/cliente-inicio.html](src/app/pages/cliente-inicio/cliente-inicio.html): Maquetación y estilos del formulario con utilidades Tailwind.
+
+### Flujo
+- Usa `TramitesHttpService.crearTramite` con `cedulaEstudiante` del `estudiante` cargado.
+- Tras crear, refresca el dashboard del cliente y limpia campos del formulario.
+
+### Notas
+- Tailwind ya está disponible globalmente desde [pya/src/styles.css](src/styles.css).
+- Próximo paso sugerido: unificar el consumo de `/dashboard/cliente` también en `ClienteInicio` para consolidar datos.

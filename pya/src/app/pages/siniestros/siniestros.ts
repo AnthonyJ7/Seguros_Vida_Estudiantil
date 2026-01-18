@@ -128,7 +128,9 @@ export class SiniestrosComponent implements OnInit {
       cedulaEstudiante: this.nuevo.cedulaEstudiante,
       tipoTramite: this.nuevo.tipoTramite,
       motivo: this.nuevo.motivo,
-      descripcion: this.nuevo.descripcion
+      descripcion: this.nuevo.descripcion,
+      copagoCategoria: this.nuevo.copagoCategoria || 'estudiante',
+      montoFacturaReferencial: this.nuevo.montoFacturaReferencial
     }).subscribe({
       next: (resp: any) => {
         this.creando = false;

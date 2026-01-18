@@ -2,7 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 import { FirestoreService } from '../../services/firestore.service';
+import { DocumentosHttpService } from '../../services/documentos-http.service';
 
 @Component({
   selector: 'app-envio-documentos',
@@ -21,7 +23,11 @@ export class EnvioDocumentosComponent implements OnInit {
   error = '';
   success = '';
 
-  constructor(private firestore: FirestoreService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private firestore: FirestoreService,
+    private documentosHttp: DocumentosHttpService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.cargar();
@@ -113,8 +119,10 @@ export class EnvioDocumentosComponent implements OnInit {
   }
 
   private getEstadoDocumento(idDocumento: string): string {
-    const enviado = this.documentosEnviados.find(d => d.idDocumento === idDocumento);
+    const enviado = this.documentosEnviados.find(d => d.idDocumento === idDocumento || d.tipo === idDocumento);
     if (!enviado) return 'pendiente';
+    // Si el backend marcó validado -> aprobado, caso contrario enviado/pendiente-revision
+    if (enviado.validado) return 'aprobado';
     return enviado.estado || 'enviado';
   }
 
@@ -134,16 +142,10 @@ export class EnvioDocumentosComponent implements OnInit {
     this.success = '';
 
     try {
-      const uid = localStorage.getItem('uid') || '';
       const archivo = this.archivoSeleccionado[docId];
 
-      // Subir archivo a Storage y guardar referencia en Firestore
-      await this.firestore.subirDocumento(
-        this.tramite.id,
-        archivo,
-        docId,
-        uid
-      );
+      // Subir vía backend para evitar problemas de CORS y notificar al gestor/admin
+      await lastValueFrom(this.documentosHttp.subirArchivo(this.tramite.id, archivo!, docId));
 
       this.success = `Documento "${docNombre}" subido exitosamente.`;
       this.archivoSeleccionado[docId] = null;

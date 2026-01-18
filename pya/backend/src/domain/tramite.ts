@@ -117,6 +117,15 @@ export interface Tramite {
   // Notificaciones
   notificacionInicial?: string; // ID de la notificación
   medioNotificacionPreferido?: string;
+
+  // Copago y cobertura
+  copago?: {
+    categoria: string;
+    porcentaje: number;
+    baseCalculo?: number;
+    valorEstimado?: number;
+    fuente: 'TDR' | 'manual';
+  };
   
   // Actor último
   creadoPor: string;

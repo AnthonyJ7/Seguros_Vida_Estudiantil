@@ -2,6 +2,17 @@
 import { db } from '../../config/firebase';
 import { Tramite, EstadoCaso, HistorialEstado } from '../../domain/tramite';
 
+// Función auxiliar para limpiar valores undefined de objetos
+function limpiarUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+  const limpio: any = {};
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      limpio[key] = obj[key];
+    }
+  }
+  return limpio;
+}
+
 export class TramitesRepository {
   private collection = db.collection('tramites');
 
@@ -82,7 +93,8 @@ export class TramitesRepository {
   }
 
   async actualizar(id: string, datos: Partial<Tramite>): Promise<void> {
-    await this.collection.doc(id).update(datos);
+    const datosLimpios = limpiarUndefined(datos);
+    await this.collection.doc(id).update(datosLimpios);
   }
 
   async agregarHistorial(id: string, historial: HistorialEstado): Promise<void> {
@@ -91,7 +103,9 @@ export class TramitesRepository {
     
     if (doc.exists) {
       const tramite = doc.data() as Tramite;
-      const nuevoHistorial = [...(tramite.historial || []), historial];
+      // Limpiar undefined del historial antes de agregarlo
+      const historialLimpio = limpiarUndefined(historial);
+      const nuevoHistorial = [...(tramite.historial || []), historialLimpio];
       await docRef.update({ 
         historial: nuevoHistorial,
         estadoCaso: historial.estadoNuevo,

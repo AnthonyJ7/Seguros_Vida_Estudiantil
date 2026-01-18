@@ -18,6 +18,15 @@ export class UserDashComponent implements OnInit {
   datosGestor: DashboardGestorData | null = null;
   cargando = true;
   rol: string = '';
+  creando = false;
+  errorCrear = '';
+  nuevoTramite = {
+    tipoTramite: '',
+    motivo: '',
+    descripcion: '',
+    copagoCategoria: 'estudiante',
+    montoFacturaReferencial: undefined as number | undefined
+  };
 
   constructor(
     private dashboardService: DashboardService,
@@ -83,5 +92,56 @@ export class UserDashComponent implements OnInit {
 
   navegarEstudiantes() {
     this.router.navigate(['/estudiantes']);
+  }
+
+  estadoCoberturaTexto(): string {
+    if (!this.datosCliente) return 'Pendiente';
+    const cobertura = this.datosCliente.estadoCobertura;
+    if (typeof cobertura === 'number') return `$${cobertura.toFixed(2)}`;
+    return cobertura || 'Pendiente';
+  }
+
+  badgeClass(estado: string): string {
+    const e = (estado || '').toLowerCase();
+    if (e.includes('valid')) return 'bg-amber-100 text-amber-700';
+    if (e.includes('aprob')) return 'bg-emerald-100 text-emerald-700';
+    if (e.includes('rechaz')) return 'bg-red-100 text-red-700';
+    if (e.includes('observ')) return 'bg-orange-100 text-orange-700';
+    return 'bg-slate-100 text-slate-700';
+  }
+
+  async crearTramiteRapido() {
+    this.errorCrear = '';
+    if (!this.datosCliente?.estudiante?.cedula) {
+      this.errorCrear = 'No se encontró información del estudiante. Revisa que exista en Firestore.';
+      return;
+    }
+    if (!this.nuevoTramite.tipoTramite) {
+      this.errorCrear = 'Selecciona un tipo de seguro.';
+      return;
+    }
+    if (!this.nuevoTramite.motivo.trim()) {
+      this.errorCrear = 'Ingresa un motivo.';
+      return;
+    }
+
+    try {
+      this.creando = true;
+      await this.tramitesHttp.crearTramite({
+        cedulaEstudiante: this.datosCliente.estudiante.cedula,
+        tipoTramite: this.nuevoTramite.tipoTramite,
+        motivo: this.nuevoTramite.motivo,
+        descripcion: this.nuevoTramite.descripcion,
+        copagoCategoria: this.nuevoTramite.copagoCategoria as any,
+        montoFacturaReferencial: this.nuevoTramite.montoFacturaReferencial,
+      }).toPromise();
+      await this.cargarDatos();
+      this.nuevoTramite = { tipoTramite: '', motivo: '', descripcion: '', copagoCategoria: 'estudiante', montoFacturaReferencial: undefined };
+    } catch (err: any) {
+      this.errorCrear = err?.error?.error || err?.message || 'Error creando trámite';
+    } finally {
+      this.creando = false;
+      this.cdr.detectChanges();
+    }
   }
 }

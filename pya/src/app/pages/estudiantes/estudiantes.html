@@ -1,81 +1,176 @@
-<div class="page">
-  <h2 class="title">Gestionar Estudiantes</h2>
+<div class="min-h-screen bg-slate-100 p-6 text-[#00283d]">
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-[#00283d] tracking-tight uppercase">Gestión de Estudiantes</h1>
+      <p class="text-slate-500 text-sm">Registro, verificación de elegibilidad y control de estados académicos</p>
+    </div>
+  </div>
 
-  <div class="grid" *ngIf="rol !== 'ADMIN'">
-    <section class="card">
-      <h3>Verificar elegibilidad</h3>
-      <div class="row">
-        <input [(ngModel)]="cedulaElegibilidad" placeholder="Cédula" />
-        <button (click)="verificarElegibilidad()">Verificar</button>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" *ngIf="rol !== 'ADMIN'">
+
+    <section class="bg-white p-6 rounded-md shadow-sm border border-slate-200">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-2 h-6 bg-[#f8ad03] rounded-full"></div>
+        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Verificar Elegibilidad</h3>
       </div>
-      <p class="muted" *ngIf="resultadoElegibilidad">{{ resultadoElegibilidad }}</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cédula del Aspirante</label>
+          <div class="flex gap-2">
+            <input [(ngModel)]="cedulaElegibilidad" type="text" placeholder="Ej: 1105..."
+              class="flex-1 text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-2 transition-colors">
+
+            <button (click)="verificarElegibilidad()"
+              class="bg-[#00283d] text-white px-4 py-2 rounded text-xs font-bold transition-all duration-200 hover:bg-black hover:scale-105 active:scale-90 shadow-sm hover:shadow-md">
+              VERIFICAR
+            </button>
+          </div>
+        </div>
+        <div *ngIf="resultadoElegibilidad" class="p-3 bg-slate-50 rounded border border-dashed border-slate-200">
+          <p class="text-xs italic text-slate-600">{{ resultadoElegibilidad }}</p>
+        </div>
+      </div>
     </section>
 
-    <section class="card">
-      <h3>Crear estudiante</h3>
-      <div class="form">
-        <label>Cédula</label>
-        <input [(ngModel)]="nuevoEstudiante.cedula" placeholder="1101..." />
-        <label>Nombre completo</label>
-        <input [(ngModel)]="nuevoEstudiante.nombreCompleto" placeholder="Nombre Apellido" />
-        <label>Período académico</label>
-        <input [(ngModel)]="nuevoEstudiante.periodoAcademico" placeholder="2025-2026" />
-        <label>Estado académico</label>
-        <select [(ngModel)]="nuevoEstudiante.estadoAcademico">
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-          <option value="graduado">Graduado</option>
-          <option value="retirado">Retirado</option>
-        </select>
-        <label>Estado de cobertura</label>
-        <select [(ngModel)]="nuevoEstudiante.estadoCobertura">
-          <option value="vigente">Vigente</option>
-          <option value="suspendida">Suspendida</option>
-          <option value="vencida">Vencida</option>
-        </select>
-        <label>UID usuario (opcional)</label>
-        <input [(ngModel)]="nuevoEstudiante.uidUsuario" placeholder="uid Firebase" />
-        <button [disabled]="guardando" (click)="crear()">Crear</button>
+    <section class="md:col-span-2 bg-white p-6 rounded-md shadow-sm border border-slate-200">
+      <div class="flex items-center gap-2 mb-6">
+        <div class="w-2 h-6 bg-[#00283d] rounded-full"></div>
+        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Registrar Nuevo Estudiante</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cédula</label>
+          <input [(ngModel)]="nuevoEstudiante.cedula" type="text"
+            class="w-full text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nombre Completo</label>
+          <input [(ngModel)]="nuevoEstudiante.nombreCompleto" type="text"
+            class="w-full text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Período Académico</label>
+          <input [(ngModel)]="nuevoEstudiante.periodoAcademico" type="text"
+            class="w-full text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Estado Académico</label>
+          <select [(ngModel)]="nuevoEstudiante.estadoAcademico"
+            class="w-full text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1 bg-transparent">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="graduado">Graduado</option>
+            <option value="retirado">Retirado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Estado de Cobertura</label>
+          <select [(ngModel)]="nuevoEstudiante.estadoCobertura"
+            class="w-full text-sm border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1 bg-transparent">
+            <option value="vigente">Vigente</option>
+            <option value="suspendida">Suspendida</option>
+            <option value="vencida">Vencida</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button [disabled]="guardando" (click)="crear()"
+            class="w-full bg-[#f8ad03] text-white py-2 rounded font-bold text-xs transition-all duration-300 uppercase tracking-widest shadow-md hover:shadow-[#f8ad03]/40 hover:-translate-y-0.5 active:translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:transform-none">
+
+            <span class="flex items-center justify-center gap-2">
+              <svg *ngIf="guardando" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              {{ guardando ? 'Procesando...' : 'Crear Estudiante' }}
+            </span>
+
+          </button>
+        </div>
       </div>
     </section>
   </div>
 
-  <section class="card">
-    <h3>Listado</h3>
-    <div *ngIf="cargandoLista" class="muted">Cargando...</div>
-    <table *ngIf="!cargandoLista">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Cédula</th>
-          <th>Período</th>
-          <th>Estado</th>
-          <th>Cobertura</th>
-          <th *ngIf="rol !== 'ADMIN'">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let est of estudiantes">
-          <td>{{ est.nombreCompleto }}</td>
-          <td>{{ est.cedula }}</td>
-          <td>{{ est.periodoAcademico }}</td>
-          <td>
-            <span *ngIf="rol === 'ADMIN'">{{ est.estadoAcademico }}</span>
-            <select *ngIf="rol !== 'ADMIN'" [(ngModel)]="estadoNuevo[est.idEstudiante || est.id]">
-              <option [ngValue]="undefined">-- cambiar --</option>
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-              <option value="graduado">Graduado</option>
-              <option value="retirado">Retirado</option>
-            </select>
-          </td>
-          <td>{{ est.estadoCobertura }}</td>
-          <td *ngIf="rol !== 'ADMIN'">
-            <button (click)="actualizarEstado(est)" [disabled]="actualizandoId === (est.idEstudiante || est.id)">Actualizar</button>
-            <button (click)="eliminar(est)" [disabled]="borrandoId === (est.idEstudiante || est.id)" style="color: red; margin-left: 8px;">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="mb-6 relative group">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#f8ad03] transition-colors" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+    <input [(ngModel)]="filtroBusqueda" type="text" placeholder="Buscar por nombre o número de cédula..."
+      class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#f8ad03]/20 focus:border-[#f8ad03] transition-all shadow-sm">
+  </div>
+
+  <section class="bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+      <h2 class="text-sm font-bold text-[#00283d] uppercase tracking-wider">Listado General</h2>
+      <div *ngIf="cargandoLista" class="animate-pulse text-[10px] font-bold text-[#f8ad03]">CARGANDO DATOS...</div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+          <tr>
+            <th class="px-6 py-4">Estudiante</th>
+            <th class="px-6 py-4">Cédula</th>
+            <th class="px-6 py-4">Período</th>
+            <th class="px-6 py-4">Estado Académico</th>
+            <th class="px-6 py-4">Cobertura</th>
+            <th class="px-6 py-4 text-center" *ngIf="rol !== 'ADMIN'">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100">
+          <tr *ngFor="let est of estudiantesFiltrados()" class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4 font-medium text-[#00283d]">{{ est.nombreCompleto }}</td>
+            <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ est.cedula }}</td>
+            <td class="px-6 py-4 text-slate-500">{{ est.periodoAcademico }}</td>
+            <td class="px-6 py-4">
+              <span *ngIf="rol === 'ADMIN'" class="px-2 py-1 rounded bg-slate-100 text-[10px] font-bold uppercase">
+                {{ est.estadoAcademico }}
+              </span>
+              <select *ngIf="rol !== 'ADMIN'" [(ngModel)]="estadoNuevo[est.idEstudiante || est.id]"
+                class="text-xs border border-slate-200 rounded px-2 py-1 outline-none focus:border-[#f8ad03]">
+                <option [ngValue]="undefined">Cambiar estado</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="graduado">Graduado</option>
+                <option value="retirado">Retirado</option>
+              </select>
+            </td>
+            <td class="px-6 py-4">
+              <span [ngClass]="{
+                'text-emerald-600 bg-emerald-50': est.estadoCobertura === 'vigente',
+                'text-red-600 bg-red-50': est.estadoCobertura === 'vencida',
+                'text-amber-600 bg-amber-50': est.estadoCobertura === 'suspendida'
+              }" class="px-2 py-1 rounded text-[10px] font-bold uppercase italic">
+                {{ est.estadoCobertura }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center" *ngIf="rol !== 'ADMIN'">
+              <div class="flex justify-center gap-3">
+                <button (click)="actualizarEstado(est)" [disabled]="actualizandoId === (est.idEstudiante || est.id)"
+                  class="text-[#00283d] hover:text-[#f8ad03] font-bold text-[10px] underline decoration-2 underline-offset-4 uppercase disabled:opacity-30">
+                  Actualizar
+                </button>
+                <button (click)="eliminar(est)" [disabled]="borrandoId === (est.idEstudiante || est.id)"
+                  class="text-red-500 hover:text-red-700 font-bold text-[10px] uppercase disabled:opacity-30">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="estudiantesFiltrados().length === 0">
+            <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">
+              No se encontraron estudiantes que coincidan con la búsqueda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>

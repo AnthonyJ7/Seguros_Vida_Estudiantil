@@ -4,6 +4,7 @@ exports.notificacionesRouter = void 0;
 const express_1 = require("express");
 const auth_1 = require("../middlewares/auth");
 const notificaciones_service_1 = require("../../application/notificaciones/notificaciones.service");
+const firebase_1 = require("../../config/firebase");
 const notificacionesRouter = (0, express_1.Router)();
 exports.notificacionesRouter = notificacionesRouter;
 const service = new notificaciones_service_1.NotificacionesService();
@@ -59,6 +60,34 @@ notificacionesRouter.get('/:id', auth_1.verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Notificación no encontrada' });
         }
         res.json(notificacion);
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// Crear notificación de prueba (para testing)
+notificacionesRouter.post('/test/crear', async (req, res) => {
+    try {
+        const { destinatario, titulo, mensaje, tipo = 'DOCUMENTO_SUBIDO', idTramite } = req.body;
+        if (!destinatario || !titulo || !mensaje) {
+            return res.status(400).json({ error: 'destinatario, titulo y mensaje son requeridos' });
+        }
+        const notificacionId = await firebase_1.firestore.collection('notificaciones').add({
+            destinatario,
+            titulo,
+            mensaje,
+            tipo,
+            idTramite: idTramite || null,
+            origen: 'TESTING',
+            leida: false,
+            fechaEnvio: new Date(),
+            fechaLectura: null
+        });
+        res.status(201).json({
+            success: true,
+            notificacionId: notificacionId.id,
+            message: 'Notificación de prueba creada exitosamente'
+        });
     }
     catch (err) {
         res.status(500).json({ error: err.message });

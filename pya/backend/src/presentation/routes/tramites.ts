@@ -7,14 +7,44 @@ import { EstadoCaso } from '../../domain/tramite';
 const tramitesRouter = Router();
 const service = new TramiteService();
 
+function sanitizeCrearTramitePayload(body: any) {
+  const sanitized: any = {
+    cedulaEstudiante: body?.cedulaEstudiante?.toString().trim(),
+    tipoTramite: body?.tipoTramite,
+    motivo: body?.motivo?.toString().trim(),
+    descripcion: body?.descripcion?.toString().trim() || undefined,
+    medioNotificacionPreferido: body?.medioNotificacionPreferido?.toString().trim() || undefined,
+    copagoCategoria: body?.copagoCategoria || undefined
+  };
+
+  // Beneficiario opcional
+  if (body?.beneficiario && typeof body.beneficiario === 'object') {
+    sanitized.beneficiario = {
+      ...body.beneficiario,
+      nombres: body.beneficiario.nombres?.toString().trim(),
+      apellidos: body.beneficiario.apellidos?.toString().trim(),
+      parentesco: body.beneficiario.parentesco?.toString().trim()
+    };
+  }
+
+  // Monto referencial para copago
+  const monto = Number(body?.montoFacturaReferencial);
+  if (!Number.isNaN(monto) && monto > 0) {
+    sanitized.montoFacturaReferencial = monto;
+  }
+
+  return sanitized;
+}
+
 // Crear trámite (Registrar Nuevo Trámite del diagrama de secuencia)
 tramitesRouter.post('/', verifyToken, requireRole(['cliente', 'gestor']), async (req: RequestWithUser, res: Response) => {
   try {
     const uid = req.user?.uid as string;
     const rol = req.user?.rol as string;
-    console.log('[tramites/POST] Recibido payload:', JSON.stringify(req.body, null, 2));
+    const payload = sanitizeCrearTramitePayload(req.body);
+    console.log('[tramites/POST] Payload saneado:', JSON.stringify(payload, null, 2));
     console.log('[tramites/POST] Usuario:', uid, 'Rol:', rol);
-    const result = await service.crearTramite(req.body, uid, rol);
+    const result = await service.crearTramite(payload, uid, rol);
     res.status(201).json(result);
   } catch (err: any) {
     console.error('[tramites/POST] Error:', err.message);

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { DocumentosHttpService } from '../../services/documentos-http.service';
 
 @Component({
@@ -18,9 +19,7 @@ export class DocumentosComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      this.documentos = await new Promise<any[]>((resolve, reject) => {
-        this.documentosHttp.listar().subscribe({ next: resolve, error: reject });
-      });
+      this.documentos = await firstValueFrom(this.documentosHttp.listar());
     } catch (e: any) {
       this.error = 'Backend no disponible o error al cargar documentos';
     }

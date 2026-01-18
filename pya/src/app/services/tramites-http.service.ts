@@ -10,6 +10,8 @@ export interface CrearTramitePayload {
   descripcion?: string;
   beneficiario?: any;
   medioNotificacionPreferido?: string;
+  copagoCategoria?: 'personal' | 'grupo_especial' | 'licencia_sin_sueldo' | 'estudiante';
+  montoFacturaReferencial?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,7 +47,11 @@ export class TramitesHttpService {
   }
 
   aprobarTramite(idTramite: string, montoAprobado?: number, observaciones?: string): Observable<any> {
-    return this.api.patch(`/tramites/${idTramite}/aprobar`, { montoAprobado, observaciones });
+    // Limpiar undefined del body antes de enviar
+    const body: any = {};
+    if (montoAprobado !== undefined) body.montoAprobado = montoAprobado;
+    if (observaciones !== undefined) body.observaciones = observaciones;
+    return this.api.patch(`/tramites/${idTramite}/aprobar`, body);
   }
 
   confirmarPago(idTramite: string, referenciaPago: string): Observable<any> {

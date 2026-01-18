@@ -25,6 +25,8 @@ export class NavbarComponent implements OnInit, OnDestroy, AfterViewInit {
   mostrarNotificaciones = false;
   notificaciones: any[] = [];
   private notifSub?: Subscription;
+  private routeSub?: Subscription;
+  hasActiveSelection = false;
 
   constructor(
     public authService: AuthService, 
@@ -35,6 +37,18 @@ export class NavbarComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     console.log('[navbar] ngOnInit ejecutado');
     this.loadUserData();
+
+    // Detectamos la ruta activa y actualizamos el estado del botón
+    this.updateActiveSelection(this.router.url);
+    this.routeSub = this.router.events
+      .pipe()
+      .subscribe((evt: any) => {
+        // NavigationEnd contiene la ruta final luego de redirects
+        if (evt?.urlAfterRedirects || evt?.url) {
+          const url = evt.urlAfterRedirects || evt.url;
+          this.updateActiveSelection(url);
+        }
+      });
   }
 
   ngAfterViewInit() {
@@ -49,6 +63,16 @@ export class NavbarComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     console.log('[navbar] ngOnDestroy ejecutado');
     this.notifSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
+  }
+
+  private updateActiveSelection(url: string) {
+    const menuPaths = [
+      '/cliente-inicio', '/mi-solicitud', '/notificaciones',
+      '/gestor-dashboard', '/estudiantes', '/documentos', '/historial-tramites', '/auditoria',
+      '/admin-dashboard', '/usuarios', '/aseguradoras'
+    ];
+    this.hasActiveSelection = menuPaths.some(p => url.startsWith(p));
   }
 
   iniciarPollingNotificaciones() {

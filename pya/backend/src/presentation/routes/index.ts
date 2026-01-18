@@ -8,6 +8,7 @@ import { reglasRouter } from './reglas';
 import { auditoriaRouter } from './auditoria';
 import { aseguradorasRouter } from './aseguradoras';
 import { usuariosRouter } from './usuarios';
+import { dashboardRouter } from './dashboard';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/reglas', reglasRouter);
 router.use('/auditoria', auditoriaRouter);
 router.use('/aseguradoras', aseguradorasRouter);
 router.use('/usuarios', usuariosRouter);
+router.use('/dashboard', dashboardRouter);
 
 export { router };

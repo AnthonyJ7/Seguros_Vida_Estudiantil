@@ -23,7 +23,8 @@ export interface DashboardClienteData {
   misTramites: any[];
   misDocumentos: any[];
   misNotificaciones: any[];
-  estadoCobertura: number;
+  estadoCobertura: string | number;
+  resumenEstados?: Record<string, number>;
 }
 
 export interface DashboardGestorData {
@@ -130,35 +131,44 @@ export class DashboardService {
    */
   async getDatosCliente(uid: string): Promise<DashboardClienteData> {
     try {
-      const estudiantesAll = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
-      const estudiante = (estudiantesAll || []).find(e => e.uidUsuario === uid) || null;
-      const tramites = estudiante
-        ? await firstValueFrom(this.api.get<any[]>('/tramites', { estudiante: estudiante.id })).catch(() => [])
-        : [];
+      // Nuevo endpoint agregado en backend para payload consolidado de cliente
+      const data = await firstValueFrom(this.api.get<any>('/dashboard/cliente')).catch(() => null);
+      if (!data) {
+        return {
+          estudiante: null,
+          misTramites: [],
+          misDocumentos: [],
+          misNotificaciones: [],
+          estadoCobertura: 0,
+          resumenEstados: {}
+        };
+      }
 
-      const todosDocs = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
-      const idsTramites = new Set(tramites.map(t => t.id || t.codigoUnico));
-      const documentos = todosDocs.filter(d => idsTramites.has(d.idTramite));
+      const misTramites = (data.tramites || []).map((t: any) => ({
+        ...t,
+        fechaRegistro: this.convertirFecha(t.fechaRegistro)
+      }));
 
-      const notificacionesAll = await firstValueFrom(this.api.get<any[]>('/notificaciones')).catch(() => []);
-      const notificaciones = estudiante ? (notificacionesAll || []).filter(n => n.idEstudiante === estudiante.id) : [];
+      const misDocumentos = (data.documentos || []).map((d: any) => {
+        const fecha = this.convertirFecha(d.fechaSubida || d.fechaCarga);
+        return {
+          ...d,
+          fechaSubida: fecha,
+          fechaCarga: fecha // compat con UI previa
+        };
+      });
+
+      const misNotificaciones = (data.notificaciones || [])
+        .map((n: any) => ({ ...n, fechaEnvio: this.convertirFecha(n.fechaEnvio) }))
+        .sort((a: any, b: any) => (b.fechaEnvio as Date).getTime() - (a.fechaEnvio as Date).getTime());
 
       return {
-        estudiante,
-        misTramites: tramites.map(t => ({
-          ...t,
-          fechaRegistro: this.convertirFecha(t.fechaRegistro)
-        })),
-        misDocumentos: documentos.map(d => ({
-          ...d,
-          fechaCarga: this.convertirFecha(d.fechaCarga)
-        })),
-        misNotificaciones: notificaciones.sort((a, b) => {
-          const dateA = this.convertirFecha(a.fechaEnvio);
-          const dateB = this.convertirFecha(b.fechaEnvio);
-          return dateB.getTime() - dateA.getTime();
-        }),
-        estadoCobertura: estudiante?.estadoCobertura || 0
+        estudiante: data.estudiante || null,
+        misTramites,
+        misDocumentos,
+        misNotificaciones,
+        estadoCobertura: data.estadoCobertura || 0,
+        resumenEstados: data.resumenEstados || {}
       };
     } catch (error) {
       console.error('Error obteniendo datos cliente:', error);
@@ -167,7 +177,8 @@ export class DashboardService {
         misTramites: [],
         misDocumentos: [],
         misNotificaciones: [],
-        estadoCobertura: 0
+        estadoCobertura: 0,
+        resumenEstados: {}
       };
     }
   }
@@ -187,7 +198,7 @@ export class DashboardService {
       const documentos = await firstValueFrom(this.api.get<any[]>('/documentos')).catch(() => []);
       const estudiantes = await firstValueFrom(this.api.get<any[]>('/estudiantes')).catch(() => []);
       const notificaciones = await firstValueFrom(this.api.get<any[]>('/notificaciones/no-leidas')).catch(() => []);
-      const estudiantesActivos = estudiantes.filter(e => e.estadoAcademico === 'ACTIVO').length;
+      const estudiantesActivos = estudiantes.filter(e => (e.estadoAcademico || '').toLowerCase() === 'activo').length;
 
       // Contar trámites de hoy
       const hoy = new Date();

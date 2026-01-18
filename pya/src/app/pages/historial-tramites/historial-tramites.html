@@ -1,0 +1,152 @@
+<div class="min-h-screen bg-slate-100 p-6 text-[#00283d]">
+  
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-[#00283d] tracking-tight uppercase">Historial de Trámites</h1>
+      <p class="text-slate-500 text-sm">Registro histórico y auditoría de resoluciones finalizadas</p>
+    </div>
+    
+  </div>
+
+  <div *ngIf="cargando" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-[#f8ad03]"></div>
+  </div>
+
+  <div *ngIf="!cargando" class="space-y-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      
+      <div class="bg-white p-5 rounded-md shadow-sm border border-slate-200 relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-slate-500 text-xs font-semibold">Total Procesados</span>
+          <button class="text-slate-300">•••</button>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span class="text-4xl font-light text-[#f8ad03]">+{{ tramites.length }}</span>
+          <span class="text-[10px] text-slate-400 font-bold">(QTD)</span>
+        </div>
+        <div class="mt-4 h-1 w-full bg-slate-100 rounded-full">
+            <div class="h-1 bg-[#f8ad03] w-full"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-2">Última actualización: hoy</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-md shadow-sm border border-slate-200">
+        <div class="flex justify-between items-start text-slate-500 text-xs font-semibold">
+          <span>Aprobaciones</span>
+          <button class="text-slate-300">•••</button>
+        </div>
+        <div class="mt-2 text-4xl font-light text-[#00283d]">
+          {{ totalAprobados }}
+        </div>
+        <p class="text-[10px] text-slate-400 mt-6 italic">Tendencia de validación positiva</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-md shadow-sm border border-slate-200">
+        <div class="flex justify-between items-start text-slate-500 text-xs font-semibold">
+          <span>Rechazados</span>
+          <button class="text-slate-300">•••</button>
+        </div>
+        <div class="mt-2 text-4xl font-light text-red-600">
+          {{ totalRechazados }}
+        </div>
+        <p class="text-[10px] text-slate-400 mt-6 italic">Casos denegados en auditoría</p>
+      </div>
+
+      <div class="bg-[#00283d] p-5 rounded-md shadow-sm text-white flex flex-col items-center justify-center relative">
+        <div class="absolute top-4 left-4 text-[10px] font-bold opacity-60 uppercase">Inversión Total</div>
+        <div class="relative flex items-center justify-center mt-2">
+          <svg class="w-16 h-16 transform -rotate-90">
+            <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4" fill="transparent" class="text-slate-700"/>
+            <circle cx="32" cy="32" r="28" stroke="#f8ad03" stroke-width="4" fill="transparent" 
+              stroke-dasharray="175" stroke-dashoffset="40"/>
+          </svg>
+          <div class="absolute flex flex-col items-center">
+            <span class="text-[8px] font-bold uppercase leading-none opacity-80">Monto</span>
+          </div>
+        </div>
+        <p class="text-lg font-medium mt-2 tracking-tight">${{ montoTotalAprobado | number:'1.0-0' }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-md shadow-sm border border-slate-200 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase">Filtrar Estado</label>
+          <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()"
+                  class="text-xs border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1 bg-transparent font-semibold">
+            <option value="todos">TODOS LOS REGISTROS</option>
+            <option value="aprobados">SÓLO APROBADOS</option>
+            <option value="rechazados">SÓLO RECHAZADOS</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1 md:col-span-2">
+          <label class="text-[10px] font-bold text-slate-400 uppercase">Búsqueda Inteligente</label>
+          <input type="text" [(ngModel)]="filtroTermino" (input)="aplicarFiltros()"
+                 placeholder="Código, cédula o nombre..." 
+                 class="text-xs border-b border-slate-200 focus:border-[#f8ad03] outline-none py-1">
+        </div>
+
+        <div class="flex justify-end">
+          <button class="text-[10px] font-bold text-slate-400 hover:text-[#f8ad03] uppercase tracking-tighter">
+            EXPORTAR AUDITORÍA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white">
+        <h2 class="text-sm font-bold text-[#00283d] uppercase tracking-wider">Historial de Resoluciones</h2>
+        <span class="text-[10px] font-bold text-slate-400 uppercase">Registros: {{ tramitesFiltrados.length }}</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+            <tr>
+              <th class="px-6 py-3">Código Case</th>
+              <th class="px-6 py-3">Beneficiario</th>
+              <th class="px-6 py-3">Estado Final</th>
+              <th class="px-6 py-3 text-right">Monto</th>
+              <th class="px-6 py-3">Fecha Cierre</th>
+              <th class="px-6 py-3">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-slate-100">
+            <tr *ngFor="let t of tramitesFiltrados" class="hover:bg-slate-50 transition-colors">
+              <td class="px-6 py-4 font-mono text-[#f8ad03] font-bold">{{ t.codigoUnico }}</td>
+              <td class="px-6 py-4">
+                <div class="text-xs font-bold text-[#00283d] uppercase leading-tight">{{ t.estudiante?.nombreCompleto }}</div>
+                <div class="text-[10px] text-slate-400 font-mono">{{ t.estudiante?.cedula }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
+                      [ngClass]="{
+                        'bg-emerald-50 text-emerald-600 border-emerald-100': t.estadoCaso?.toLowerCase() === 'aprobado',
+                        'bg-red-50 text-red-600 border-red-100': t.estadoCaso?.toLowerCase() === 'rechazado'
+                      }">
+                  {{ t.estadoCaso }}
+                </span>
+              </td>
+              <td class="px-6 py-4 font-bold text-[#00283d] text-right">
+                {{ t.montoAprobado ? ('$' + (t.montoAprobado | number:'1.0-0')) : '--' }}
+              </td>
+              <td class="px-6 py-4 text-slate-400 text-xs">
+                {{ (t.fechaCierre || t.fechaRegistro) | date:'mediumDate' }}
+              </td>
+              <td class="px-6 py-4 text-[10px] text-slate-500 italic truncate max-w-[180px]">
+                {{ t.respuestaAseguradora?.observaciones || 'Sin observaciones' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="tramitesFiltrados.length === 0" class="text-center py-16">
+          <p class="text-xs font-bold text-slate-300 uppercase tracking-widest">No se encontraron resultados</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

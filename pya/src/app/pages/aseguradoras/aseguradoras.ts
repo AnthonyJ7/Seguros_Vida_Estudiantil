@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirestoreService } from '../../services/firestore.service';
 import { AuthService } from '../../services/auth.service';
+import { DocumentosHttpService } from '../../services/documentos-http.service';
+import { firstValueFrom } from 'rxjs';
 
 interface Aseguradora {
   id?: string;
@@ -59,10 +61,14 @@ export class AseguradorasPage implements OnInit {
   mostrarRegistroNotificaciones = false;
   marcandoNotificacionId: string | null = null;
   usuarioId: string | null = null;
+  documentosPorTramite: Record<string, any[]> = {};
+  documentosVisibles: Record<string, boolean> = {};
+  documentosCargandoId: string | null = null;
 
   constructor(
     private firestoreService: FirestoreService,
-    private authService: AuthService
+    private authService: AuthService,
+    private documentosService: DocumentosHttpService
   ) {
     // Obtener el ID del usuario actual desde localStorage o desde el servicio
     this.usuarioId = localStorage.getItem('uid') || null;
@@ -166,6 +172,52 @@ export class AseguradorasPage implements OnInit {
 
   toggleHistorial() {
     this.mostrarHistorial = !this.mostrarHistorial;
+  }
+
+  async toggleDocumentos(tramite: Tramite) {
+    const id = tramite.id;
+    console.log('[aseguradoras] Toggle documentos para trámite:', id, 'Código:', tramite.codigoUnico);
+    const visible = !!this.documentosVisibles[id];
+    if (!visible && !this.documentosPorTramite[id]) {
+      console.log('[aseguradoras] Cargando documentos para:', id);
+      await this.cargarDocumentosTramite(id);
+    }
+    this.documentosVisibles[id] = !visible;
+    console.log('[aseguradoras] Estado visible:', this.documentosVisibles);
+  }
+
+  private toDate(v: any): Date | null {
+    if (!v) return null;
+    if (v instanceof Date) return v;
+    if (v.toDate) return v.toDate();
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  async cargarDocumentosTramite(tramiteId: string) {
+    this.documentosCargandoId = tramiteId;
+    console.log('[aseguradoras] Solicitando documentos para tramiteId:', tramiteId);
+    try {
+      const docs = await firstValueFrom(this.documentosService.listarPorTramite(tramiteId));
+      console.log('[aseguradoras] Documentos recibidos para', tramiteId, ':', docs);
+      // Normalizar campos esperados por UI
+      const normalizados = (docs || []).map((d: any) => ({
+        idDocumento: d.idDocumento || d.id,
+        tramiteId: d.tramiteId,
+        tipo: d.tipo,
+        nombreArchivo: d.nombreArchivo || d.nombre || 'Documento',
+        url: d.urlArchivo || d.url,
+        fechaCarga: this.toDate(d.fechaCarga || d.fechaSubida) || new Date(),
+        validado: !!d.validado
+      }));
+      this.documentosPorTramite[tramiteId] = normalizados;
+      console.log('[aseguradoras] Documentos normalizados guardados para', tramiteId, ':', normalizados);
+    } catch (err) {
+      console.error('[aseguradoras] Error cargando documentos:', err);
+      this.documentosPorTramite[tramiteId] = [];
+    } finally {
+      this.documentosCargandoId = null;
+    }
   }
 
   abrirModalRechazo(tramite: Tramite) {
@@ -355,5 +407,9 @@ export class AseguradorasPage implements OnInit {
     if (tipo.includes('APROBACION')) return '✅';
     if (tipo.includes('CORRECCIONES')) return '⚠️';
     return '📨';
+  }
+
+  trackByTramiteId(index: number, tramite: Tramite): string {
+    return tramite.id;
   }
 }
